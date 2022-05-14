@@ -1,0 +1,2 @@
+# auto-swiper
+Automate Swiping
