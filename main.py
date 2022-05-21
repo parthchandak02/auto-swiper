@@ -1,6 +1,7 @@
 import pyautogui
 import time
 import re
+import random
 
 roseCheckImg = 'Images\\0_CHECK_FOR_ROSE.png'
 heartImg = 'Images\\1_HEART.png'
@@ -58,7 +59,33 @@ def scroll(Pixels):
 
 
 def typeMessage(MessageString):
-    pyautogui.write(MessageString, interval=0.01)
+    pyautogui.typewrite(MessageString, interval=0.01)
+
+
+punArray = ["Why do fathers take an extra pair of socks when they go golfing?. In case they get a hole in one!",
+            "My friend asked me to pick up 6 cans of sprite from the grocery store today. When I got home, I realized I had picked 7up.",
+            "You're American when you enter and exit the bathroom. But what are you when you are in the bathroom? Eur-a-peein.",
+            "What do cats look for in a significant other? A great purrsonality.",
+            "What did Darth Vader’s dog say to Luke’s dog?",
+            "What do you call a sweater that was blown away by the wind? A cardi-gone.",
+            "What is a penguin's favourite aunt?",
+            "What did the sushi say to the bee?",
+            "What ends up on tiny beaches?",
+            "What did baby corn say to momma corn?",
+            "What's the best thing about living in Switzerland?",
+            "Why can’t you can’t trust atoms? They make up everything.",
+            "What do sea monsters eat for lunch? Fish and ships.",
+            "What do mermaids was their fins with? Tide.",
+            "Did you hear Steve Harvey and his wife got into a fight? It was a Family Feud.",
+            "Velcro is a complete ripoff.",
+            "Why don't dinosaurs make good pets? Because they're dead.",
+            "Why didn't the melons get married? Because they can't-elope.",
+            "I've started telling people about the benefits of dried grapes. It's all about raisin awareness."]
+
+
+def randomPunGenerator(punArray):
+    randNum = random.randint(0, len(punArray)-1)
+    return punArray[randNum]
 
 
 def sequence():
@@ -67,7 +94,9 @@ def sequence():
     wait(1)
     clickFromLocation(commentImg)
     wait(1.5)
-    typeMessage("What ends up on tiny beaches?")
+    print("Joke: \n" + randomPunGenerator(punArray) + "\n")
+    msg = str(str(randomPunGenerator(punArray)))
+    typeMessage(msg)
     wait(1)
     clickFromLocation(likeImg)
     wait(1)
