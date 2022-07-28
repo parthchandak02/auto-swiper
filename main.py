@@ -1,5 +1,8 @@
+from glob import glob
+from cv2 import divide
 import pyautogui
 import time
+from datetime import datetime
 import re
 import random
 
@@ -8,8 +11,26 @@ heartImg = 'Images\\1_HEART.png'
 commentImg = 'Images\\2_ADD_COMMENT.png'
 likeImg = 'Images\\3_SEND_LIKE.png'
 
+counter = 0
+imgCounter = 0
+skipCounter = 0
 
-defaultWaitTimeSecs = 15
+s = datetime.now().strftime("%m/%d/%Y, %I:%M:%S")
+
+
+def getStartTime():
+    return ("Start Date & Time = " + str(s))
+
+
+def getEndTime():
+    e = datetime.now().strftime("%m/%d/%Y, %I:%M:%S")
+    return ("End Date & Time = " + str(e))
+
+
+dividerBig = "===================================================================================================="
+divider = "--------------------------------------------------"
+
+defaultWaitTimeSecs = 3
 pyautogui.FAILSAFE = True
 
 
@@ -45,11 +66,15 @@ def wait(x):
 def clickFromLocation(ImagePath):
     try:
         x, y = pyautogui.locateCenterOnScreen(
-            ImagePath, grayscale=True, confidence=0.7)
+            ImagePath, grayscale=True, confidence=0.5)
         pyautogui.click(x, y)
         print("clicked on image from " + str(ImagePath))
+        global imgCounter
+        imgCounter += 1
     except:
         print("SKIPPED! cound't find image from " + str(ImagePath))
+        global skipCounter
+        skipCounter += 1
         return
 
 
@@ -79,7 +104,14 @@ punArray = ["Why do fathers take an extra pair of socks when they go golfing?. I
             "Did you hear Steve Harvey and his wife got into a fight? It was a Family Feud.",
             "Velcro is a complete ripoff.",
             "Why didn't the melons get married? Because they can't-elope.",
-            "I've started telling people about the benefits of dried grapes. It's all about raisin awareness."]
+            "I've started telling people about the benefits of dried grapes. It's all about raisin awareness.",
+            "Have you ever tried to catch a fog? I tried yesterday but I mist.",
+            "I saw my math teacher with a piece of graph paper yesterday. I think he must be plotting something.",
+            "I burnt my Hawaiian pizza today. I should have cooked it at aloha temperature.",
+            "I once had a dream I was floating in an ocean of orange soda. It was more of a fanta sea.",
+            "What do you call a fake noodle? An impasta.",
+            "I once got fired from a canned juice company. Apparently I couldn't concentrate.",
+            "Last night the waiter asked me 'Do you wanna box for the leftovers?' I said, 'No but I can wrestle you for them!'"]
 
 
 def randomPunGenerator(punArray):
@@ -90,20 +122,46 @@ def randomPunGenerator(punArray):
 def sequence():
     defaultLoc()
     clickFromLocation(heartImg)
-    wait(1)
+    wait(defaultWaitTimeSecs)
     clickFromLocation(commentImg)
-    wait(1.5)
-    print("Joke: \n" + randomPunGenerator(punArray) + "\n")
-    msg = str(str(randomPunGenerator(punArray)))
+    wait(defaultWaitTimeSecs)
+    msg = str(randomPunGenerator(punArray))
+    print("Joke: \n" + msg + "\n")
     typeMessage(msg)
-    wait(1)
+    wait(defaultWaitTimeSecs)
     clickFromLocation(likeImg)
-    wait(1)
+    wait(defaultWaitTimeSecs)
 
 
-counter = 0
-while counter < 500:
-    counter += 1
-    print("Like #" + str(counter))
-    sequence()
-    print("--------------------------------------------------")
+def logAll():
+    logFile = open("log.txt", "r+")
+    content = logFile.read()
+    printSkip = ("Skipped Images = " + str(skipCounter) + " Images")
+    printComplete = ("Completed Images = " + str(imgCounter) + " Images")
+    printTotal = ("Total Images = " +
+                  str(imgCounter + skipCounter) + " Images")
+    log = ("\n\n" + dividerBig + "\n" + getStartTime() + "\n" + divider + "\n" + printSkip + "\n" + printComplete +
+           "\n" + printTotal + "\n" + divider + "\n" + getEndTime() + "\n" + dividerBig + "\n\n")
+    logFile.seek(0)
+    logFile.write(log + content)
+    print(log)
+    logFile.close()
+
+
+def looper():
+    global counter
+    while counter < 200:
+        try:
+            counter += 1
+            print("Like #" + str(counter))
+            sequence()
+            print(divider)
+
+        except KeyboardInterrupt:
+            return
+
+        finally:
+            logAll()
+
+
+looper()
