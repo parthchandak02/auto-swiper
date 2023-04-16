@@ -1,10 +1,13 @@
 from glob import glob
-from cv2 import divide
 import pyautogui
 import time
 from datetime import datetime
 import re
 import random
+
+# For a later time - ML / OPENCV mods
+# from cv2 import divide
+
 
 roseCheckImg = 'Images\\0_CHECK_FOR_ROSE.png'
 heartImg = 'Images\\1_HEART.png'
