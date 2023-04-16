@@ -5,7 +5,9 @@ Automate Swiping
 python -m venv venv
 
 ## Activate Virtual Environment
+
 [MACOS] source venv/bin/activate
+
 [WINDOWS] venv/Scripts/activate
 
 ## Install required packages
