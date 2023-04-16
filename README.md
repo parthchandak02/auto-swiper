@@ -1,8 +1,10 @@
 # auto-swiper
+
 Automate Swiping
 
 ## Virtual Environment Install
-python -m venv venv
+
+python3 -m venv venv
 
 ## Activate Virtual Environment
 
@@ -11,7 +13,9 @@ python -m venv venv
 [WINDOWS] venv/Scripts/activate
 
 ## Install required packages
-pip install -r requirements.txt
+
+pip3 install -r requirements.txt
 
 ## Run the Script
-python main.py
+
+python3 main.py
