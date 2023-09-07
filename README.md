@@ -1,6 +1,6 @@
 # auto-swiper
 
-Automate Swiping
+Automate Swiping. This needs Bluestacks or some android emulator. Install Hinge on that, then continue the below steps. 
 
 ## Virtual Environment Install
 
