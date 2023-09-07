@@ -90,31 +90,8 @@ def typeMessage(MessageString):
     pyautogui.typewrite(MessageString, interval=0.01)
 
 
-punArray = ["Why do fathers take an extra pair of socks when they go golfing?. In case they get a hole in one!",
-            "My friend asked me to pick up 6 cans of sprite from the grocery store today. When I got home, I realized I had picked 7up.",
-            "You're American when you enter and exit the bathroom. But what are you when you are in the bathroom? Eur-a-peein.",
-            "What do cats look for in a significant other? A great purrsonality.",
-            "What did Darth Vader’s dog say to Luke’s dog?",
-            "What do you call a sweater that was blown away by the wind? A cardi-gone.",
-            "What is a penguin's favorite aunt?",
-            "What did the sushi say to the bee?",
-            "What ends up on tiny beaches?",
-            "What did baby corn say to momma corn?",
-            "What's the best thing about living in Switzerland?",
-            "Why can’t you can’t trust atoms? They make up everything.",
-            "What do sea monsters eat for lunch? Fish and ships.",
-            "What do mermaids wash their fins with? Tide.",
-            "Did you hear Steve Harvey and his wife got into a fight? It was a Family Feud.",
-            "Velcro is a complete ripoff.",
-            "Why didn't the melons get married? Because they can't-elope.",
-            "I've started telling people about the benefits of dried grapes. It's all about raisin awareness.",
-            "Have you ever tried to catch a fog? I tried yesterday but I mist.",
-            "I saw my math teacher with a piece of graph paper yesterday. I think he must be plotting something.",
-            "I burnt my Hawaiian pizza today. I should have cooked it at aloha temperature.",
-            "I once had a dream I was floating in an ocean of orange soda. It was more of a fanta sea.",
-            "What do you call a fake noodle? An impasta.",
-            "I once got fired from a canned juice company. Apparently I couldn't concentrate.",
-            "Last night the waiter asked me 'Do you wanna box for the leftovers?' I said, 'No but I can wrestle you for them!'"]
+punArray = ["Add joke here",
+            "Add pun here"]
 
 
 def randomPunGenerator(punArray):
