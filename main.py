@@ -1,147 +1,114 @@
-from glob import glob
 import pyautogui
 import time
 from datetime import datetime
-import re
 import random
 
-# For a later time - ML / OPENCV mods
-# from cv2 import divide
+# Image paths
+roseCheckImg = 'Images/0_CHECK_FOR_ROSE.png'
+heartImg = 'Images/1_HEART.png'
+commentImg = 'Images/2_ADD_COMMENT.png'
+likeImg = 'Images/3_SEND_LIKE.png'
 
-
-roseCheckImg = 'Images\\0_CHECK_FOR_ROSE.png'
-heartImg = 'Images\\1_HEART.png'
-commentImg = 'Images\\2_ADD_COMMENT.png'
-likeImg = 'Images\\3_SEND_LIKE.png'
-
+# Counters
 counter = 0
 imgCounter = 0
 skipCounter = 0
 
+# Start time
 s = datetime.now().strftime("%m/%d/%Y, %I:%M:%S")
-
 
 def getStartTime():
     return ("Start Date & Time = " + str(s))
-
 
 def getEndTime():
     e = datetime.now().strftime("%m/%d/%Y, %I:%M:%S")
     return ("End Date & Time = " + str(e))
 
-
-dividerBig = "===================================================================================================="
-divider = "--------------------------------------------------"
+dividerBig = "=" * 100
+divider = "-" * 50
 
 defaultWaitTimeSecs = 3
 pyautogui.FAILSAFE = True
 
-
 def defaultLoc():
     pyautogui.moveTo(100, 150)
 
-
 def wait(x):
-    i = 1
-    while i <= x:
-        print("waiting... " + str(i) + " seconds")
+    for i in range(1, x + 1):
+        print(f"waiting... {i} seconds")
         time.sleep(1)
-        i += 1
-
-# def waitToLoad():
-#     defaultLoc()
-#     try:
-#         coinbase_x,coinbase_y=pyautogui.locateCenterOnScreen(loadingImg,grayscale=True,confidence=0.7)
-#         if coinbase_x > 0:
-#             try:
-#                 page3_x,page3_y=pyautogui.locateCenterOnScreen(page3,grayscale=True,confidence=0.7)
-#                 if page3_x > 0:
-#                     print("We are on page 3!")
-#                     return
-#             except:
-#                 print("Loading...")
-#                 wait(3)
-#                 waitToLoad()
-#     except:
-#         return False
-
 
 def clickFromLocation(ImagePath):
     try:
-        x, y = pyautogui.locateCenterOnScreen(
-            ImagePath, grayscale=True, confidence=0.5)
+        x, y = pyautogui.locateCenterOnScreen(ImagePath, grayscale=True, confidence=0.5)
         pyautogui.click(x, y)
-        print("clicked on image from " + str(ImagePath))
+        print(f"clicked on image from {ImagePath}")
         global imgCounter
         imgCounter += 1
     except:
-        print("SKIPPED! cound't find image from " + str(ImagePath))
+        print(f"SKIPPED! couldn't find image from {ImagePath}")
         global skipCounter
         skipCounter += 1
-        return
-
 
 def scroll(Pixels):
     pyautogui.scroll(Pixels)
-    print("scrolled down " + str(Pixels) + " pixels")
-
+    print(f"scrolled down {Pixels} pixels")
 
 def typeMessage(MessageString):
     pyautogui.typewrite(MessageString, interval=0.01)
 
+def loadJokes(filename):
+    try:
+        with open(filename, 'r') as file:
+            jokes = file.read().splitlines()
+        return jokes
+    except Exception as e:
+        print(f"Error reading jokes file: {e}")
+        return []
 
-punArray = ["Add joke here",
-            "Add pun here"]
+def randomPunGenerator(jokes):
+    return random.choice(jokes) if jokes else "No jokes available"
 
-
-def randomPunGenerator(punArray):
-    randNum = random.randint(0, len(punArray)-1)
-    return punArray[randNum]
-
-
-def sequence():
+def sequence(jokes):
     defaultLoc()
     clickFromLocation(heartImg)
     wait(defaultWaitTimeSecs)
     clickFromLocation(commentImg)
     wait(defaultWaitTimeSecs)
-    msg = str(randomPunGenerator(punArray))
-    print("Joke: \n" + msg + "\n")
+    msg = randomPunGenerator(jokes)
+    print(f"Joke: \n{msg}\n")
     typeMessage(msg)
     wait(defaultWaitTimeSecs)
     clickFromLocation(likeImg)
     wait(defaultWaitTimeSecs)
 
-
 def logAll():
-    logFile = open("log.txt", "r+")
-    content = logFile.read()
-    printSkip = ("Skipped Images = " + str(skipCounter) + " Images")
-    printComplete = ("Completed Images = " + str(imgCounter) + " Images")
-    printTotal = ("Total Images = " +
-                  str(imgCounter + skipCounter) + " Images")
-    log = ("\n\n" + dividerBig + "\n" + getStartTime() + "\n" + divider + "\n" + printSkip + "\n" + printComplete +
-           "\n" + printTotal + "\n" + divider + "\n" + getEndTime() + "\n" + dividerBig + "\n\n")
-    logFile.seek(0)
-    logFile.write(log + content)
-    print(log)
-    logFile.close()
-
+    try:
+        with open("log.txt", "a") as logFile:
+            printSkip = f"Skipped Images = {skipCounter} Images"
+            printComplete = f"Completed Images = {imgCounter} Images"
+            printTotal = f"Total Images = {imgCounter + skipCounter} Images"
+            log = (
+                f"\n\n{dividerBig}\n{getStartTime()}\n{divider}\n{printSkip}\n{printComplete}\n"
+                f"{printTotal}\n{divider}\n{getEndTime()}\n{dividerBig}\n\n"
+            )
+            logFile.write(log)
+            print(log)
+    except Exception as e:
+        print(f"Error writing to log file: {e}")
 
 def looper():
     global counter
+    jokes = loadJokes('jokes.txt')
     while counter < 200:
         try:
             counter += 1
-            print("Like #" + str(counter))
-            sequence()
+            print(f"Like #{counter}")
+            sequence(jokes)
             print(divider)
-
         except KeyboardInterrupt:
-            return
-
+            break
         finally:
             logAll()
-
 
 looper()

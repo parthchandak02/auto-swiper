@@ -19,3 +19,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+## Disclaimer
+
+This software is intended for educational and personal use only. Use of this software to automate interactions on third-party platforms, such as Hinge and Bluestacks, may violate their terms of service. The author does not condone or encourage any activities that violate the terms of service of any platform.
+
+Users are responsible for their own actions when using this software. The author assumes no liability for any misuse of this software or any consequences resulting from its use.
