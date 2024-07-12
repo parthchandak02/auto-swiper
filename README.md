@@ -72,20 +72,7 @@ Users are responsible for their own actions when using this software. The author
 
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
-## Configuration
-
-You can customize the behavior of the script by editing the config.yaml file.
-
-default_wait_time_secs: 3
-max_likes: 200
-pun_array:
-  - "Add joke here"
-  - "Add pun here"
-
-For more detailed usage and customization, please refer to the [Wiki](https://github.com/yourusername/auto-swiper/wiki).
-
 ---
 
-For any questions, feel free to open an issue or contact the author directly.
-
+For any questions, feel free to open an issue or contact the author directly @ parth.chandak02@gmail.com
 Happy Swiping!
