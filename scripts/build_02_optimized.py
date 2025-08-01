@@ -8,6 +8,7 @@ import os
 import sys
 import shutil
 import subprocess
+import platform
 from pathlib import Path
 
 # Rich imports for beautiful terminal output
@@ -188,11 +189,11 @@ def build_optimized():
                 TimeElapsedColumn(),
                 console=console,
             ) as progress:
-                task = progress.add_task("Building optimized executable...", total=None)
-                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+                progress.add_task("Building optimized executable...", total=None)
+                subprocess.run(cmd, check=True, capture_output=True, text=True)
         else:
             # Fallback without Rich
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
             
         print_styled("✅ Optimized build successful!", "success")
         

@@ -10,15 +10,15 @@ import shutil
 import subprocess
 import argparse
 import time
+import platform
 from pathlib import Path
-from typing import List, Optional
 
 # Rich imports for beautiful terminal output
 try:
     from rich.console import Console
     from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-    from rich.table import Table
+
     from rich.text import Text
     from rich import box
     HAS_RICH = True
@@ -34,7 +34,6 @@ except ImportError:
 # Modern Python features and optimizations
 if sys.version_info >= (3, 11):
     # Use faster startup in Python 3.11+
-    import tomllib  # Built-in TOML support in 3.11+
     PYTHON_OPTIMIZED = True
 else:
     PYTHON_OPTIMIZED = False
@@ -193,11 +192,11 @@ def create_build(console_mode: bool = False, use_uv: bool = False) -> bool:
                 TimeElapsedColumn(),
                 console=console,
             ) as progress:
-                task = progress.add_task("Building executable...", total=None)
-                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+                progress.add_task("Building executable...", total=None)
+                subprocess.run(cmd, check=True, capture_output=True, text=True)
         else:
             # Fallback without Rich
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
         
         build_time = time.time() - start_time
         print_styled(f"✅ Build successful in {build_time:.1f} seconds!", "success")
@@ -375,7 +374,7 @@ python scripts/build_01_quick.py --use-uv           # Use uv for faster builds
         if not use_uv:
             print_styled("  • Install uv for faster dependency management: curl -LsSf https://astral.sh/uv/install.sh | sh", "info")
         
-        print_styled(f"\n⚠️ Platform-specific build:", "warning")
+        print_styled("\n⚠️ Platform-specific build:", "warning")
         print_styled(f"   This executable works on {sys.platform} only", "warning")
         
     else:

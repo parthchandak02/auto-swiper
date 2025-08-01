@@ -15,7 +15,7 @@ try:
     from rich.console import Console
     from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-    from rich.table import Table
+
     from rich.text import Text
     from rich import box
     HAS_RICH = True
@@ -160,11 +160,11 @@ def create_platform_executable():
                 TimeElapsedColumn(),
                 console=console,
             ) as progress:
-                task = progress.add_task(f"Building for {system}...", total=None)
-                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+                progress.add_task(f"Building for {system}...", total=None)
+                subprocess.run(cmd, check=True, capture_output=True, text=True)
         else:
             # Fallback without Rich
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
             
         executable_name = f"AutoSwiper{config['executable_extension']}"
         print_styled(f"✅ Build successful for {system}!", "success")
@@ -292,7 +292,7 @@ def main():
             print_styled("• Antivirus may flag the executable (false positive)", "info")
             print_styled("• Consider code signing for production distribution", "info")
         
-        print_styled(f"\n💡 To build for other platforms:", "info")
+        print_styled("\n💡 To build for other platforms:", "info")
         print_styled("• Use GitHub Actions (run with --github-actions)", "info")
         print_styled("• Or build on each target platform manually", "info")
 

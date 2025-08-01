@@ -7,13 +7,13 @@ Removes build artifacts and temporary files
 import os
 import shutil
 import glob
-from pathlib import Path
+import platform
 
 # Rich imports for beautiful terminal output
 try:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn
+
     from rich.table import Table
     from rich import box
     HAS_RICH = True
@@ -100,7 +100,7 @@ def clean_python_cache():
     print_styled("🐍 Cleaning Python cache files...", "highlight")
     
     # Find and remove __pycache__ directories
-    for root, dirs, files in os.walk('.'):
+    for root, dirs, _ in os.walk('.'):
         if '__pycache__' in dirs:
             cache_dir = os.path.join(root, '__pycache__')
             print_styled(f"  Removing: {cache_dir}", "info")

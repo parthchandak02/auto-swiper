@@ -8,9 +8,9 @@ import argparse
 import os
 import sys
 import subprocess
-import json
+import platform
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -20,7 +20,7 @@ try:
     from rich.table import Table
     from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn
-    from rich.prompt import Confirm
+
     # Windows-compatible console setup
     if platform.system() == "Windows":
         console = Console(force_terminal=True, legacy_windows=False, width=120)
@@ -153,7 +153,7 @@ def run_build_script(script_name: str, args: List[str] = None) -> bool:
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
-                task = progress.add_task(f"Building with {script_name}...", total=None)
+                progress.add_task(f"Building with {script_name}...", total=None)
                 result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         else:
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)

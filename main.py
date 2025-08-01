@@ -9,7 +9,6 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
-from rich.live import Live
 from rich import box
 
 # Initialize Rich console
@@ -69,7 +68,7 @@ def wait(x):
         transient=True  # Progress bar disappears after completion
     ) as progress:
         task = progress.add_task(f"[cyan]Waiting {x} seconds...", total=x)
-        for i in range(x):
+        for _ in range(x):
             time.sleep(1)
             progress.update(task, advance=1)
 
@@ -81,7 +80,7 @@ def clickFromLocation(ImagePath):
         console.print(f"[green]✓[/green] Clicked on image: [blue]{ImagePath}[/blue]")
         global imgCounter
         imgCounter += 1
-    except:
+    except Exception:
         console.print(f"[yellow]⚠[/yellow] Skipped - couldn't find: [red]{ImagePath}[/red]")
         global skipCounter
         skipCounter += 1
