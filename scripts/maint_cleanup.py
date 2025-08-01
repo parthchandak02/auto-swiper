@@ -7,69 +7,18 @@ Removes build artifacts and temporary files
 import os
 import shutil
 import glob
-import platform
-
-# Rich imports for beautiful terminal output
+# Handle imports for both direct execution and module import
 try:
-    from rich.console import Console
-    from rich.panel import Panel
-
-    from rich.table import Table
-    from rich import box
-    HAS_RICH = True
-    # Windows-compatible console setup
-    if platform.system() == "Windows":
-        console = Console(force_terminal=True, legacy_windows=False, width=120)
-    else:
-        console = Console()
+    from .shared_utils import print_styled, show_banner, HAS_RICH, console
 except ImportError:
-    HAS_RICH = False
-    console = None
+    from shared_utils import print_styled, show_banner, HAS_RICH, console
 
-def print_styled(message: str, style: str = "info") -> None:
-    """Print with Rich styling if available, otherwise plain text"""
-    if HAS_RICH and console:
-        styles = {
-            "info": "blue",
-            "success": "green bold", 
-            "warning": "yellow",
-            "error": "red bold",
-            "highlight": "magenta bold"
-        }
-        console.print(f"[{styles.get(style, 'white')}]{message}[/]")
-    else:
-        # Fallback icons for non-Rich environments (Windows-safe)
-        if platform.system() == "Windows":
-            icons = {
-                "info": "[INFO]",
-                "success": "[OK]", 
-                "warning": "[WARN]",
-                "error": "[ERROR]",
-                "highlight": "[*]"
-            }
-        else:
-            icons = {
-                "info": "📄",
-                "success": "✅", 
-                "warning": "⚠️",
-                "error": "❌",
-                "highlight": "🎯"
-            }
-        print(f"{icons.get(style, '')} {message}")
-
-def show_banner():
-    """Display a beautiful startup banner"""
-    if HAS_RICH and console:
-        banner = Panel(
-            "🧹 Auto-Swiper Cleanup Tool",
-            subtitle="Removing build artifacts and temporary files",
-            box=box.DOUBLE_EDGE,
-            style="blue"
-        )
-        console.print(banner)
-    else:
-        print("🎯 Auto-Swiper Cleanup Tool")
-        print("=" * 40)
+try:
+    from rich.table import Table
+    from rich.panel import Panel
+    from rich import box
+except ImportError:
+    pass
 
 def clean_build_artifacts():
     """Remove build and distribution artifacts"""
@@ -159,7 +108,11 @@ def show_summary(cleaned_items):
         print_styled("  • Fresh builds", "info")
 
 def main():
-    show_banner()
+    show_banner(
+        "🧹 Auto-Swiper Cleanup Tool",
+        "Removing build artifacts and temporary files",
+        "blue"
+    )
     
     if not os.path.exists('main.py'):
         print_styled("❌ Error: Run this script from the project root directory", "error")

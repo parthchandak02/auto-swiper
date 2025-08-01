@@ -4,159 +4,86 @@ Auto-Swiper Build Optimization Script
 Reduces executable size and optimizes packaging
 """
 
-import os
 import sys
-import shutil
 import subprocess
-import platform
-from pathlib import Path
-
-# Rich imports for beautiful terminal output
+# Handle imports for both direct execution and module import
 try:
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-    from rich.table import Table
-    from rich.text import Text
-    from rich import box
-    HAS_RICH = True
-    # Windows-compatible console setup
-    if platform.system() == "Windows":
-        console = Console(force_terminal=True, legacy_windows=False, width=120)
-    else:
-        console = Console()
+    from .shared_utils import (
+        print_styled, show_banner, get_executable_size,
+        get_pyinstaller_analysis_config, get_pyinstaller_exe_config,
+        clean_build_directories, HAS_RICH, console
+    )
 except ImportError:
-    HAS_RICH = False
-    console = None
+    from shared_utils import (
+        print_styled, show_banner, get_executable_size,
+        get_pyinstaller_analysis_config, get_pyinstaller_exe_config,
+        clean_build_directories, HAS_RICH, console
+    )
 
-def print_styled(message: str, style: str = "info") -> None:
-    """Print with Rich styling if available, otherwise plain text"""
-    if HAS_RICH and console:
-        styles = {
-            "info": "blue",
-            "success": "green bold", 
-            "warning": "yellow",
-            "error": "red bold",
-            "highlight": "magenta bold",
-            "progress": "cyan"
-        }
-        console.print(f"[{styles.get(style, 'white')}]{message}[/]")
-    else:
-        # Fallback icons for non-Rich environments (Windows-safe)
-        if platform.system() == "Windows":
-            icons = {
-                "info": "[INFO]",
-                "success": "[OK]", 
-                "warning": "[WARN]",
-                "error": "[ERROR]",
-                "highlight": "[*]",
-                "progress": "[BUILD]"
-            }
-        else:
-            icons = {
-                "info": "ℹ️",
-                "success": "✅", 
-                "warning": "⚠️",
-                "error": "❌",
-                "highlight": "🎯",
-                "progress": "📦"
-            }
-        print(f"{icons.get(style, '')} {message}")
+try:
+    from rich.panel import Panel
+    from rich.table import Table
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+    from rich import box
+except ImportError:
+    # Define dummy classes for when Rich is not available
+    class Progress:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def add_task(self, *args, **kwargs): pass
+    
+    class SpinnerColumn: pass
+    class TextColumn: pass
+    class BarColumn: pass
+    class TimeElapsedColumn: pass
 
-def show_banner():
-    """Display a beautiful startup banner"""
-    if HAS_RICH and console:
-        banner = Panel(
-            Text("🚀 Auto-Swiper Optimized Build Tool", style="bold magenta"),
-            subtitle="Size-optimized production builds with advanced compression",
-            box=box.DOUBLE_EDGE,
-            style="magenta"
-        )
-        console.print(banner)
-    else:
-        print("🚀 Auto-Swiper Optimized Build Tool")
-        print("=" * 60)
+
 
 def create_optimized_spec():
     """Create an optimized PyInstaller spec file"""
-    spec_content = '''# -*- mode: python ; coding: utf-8 -*-
+    # Additional excludes for size optimization
+    excludes = [
+        'matplotlib',
+        'scipy',
+        'pandas',
+        'jupyter',
+        'IPython',
+        'notebook',
+        'tkinter',
+        'PyQt5',
+        'PyQt6',
+        'PySide2',
+        'PySide6',
+        'wx',
+        'doctest',
+        'unittest',
+        'test',
+        'tests',
+        'distutils',
+        'setuptools',
+        'pip',
+        'wheel',
+    ]
+    
+    spec_content = f'''# -*- mode: python ; coding: utf-8 -*-
 
 # Optimized Auto-Swiper build configuration
 
 block_cipher = None
 
 # Modules to exclude (reduce size)
-excludes = [
-    'matplotlib',
-    'scipy',
-    'pandas',
-    'jupyter',
-    'IPython',
-    'notebook',
-    'tkinter',
-    'PyQt5',
-    'PyQt6',
-    'PySide2',
-    'PySide6',
-    'wx',
-    'doctest',
-    'unittest',
-    'test',
-    'tests',
-    'distutils',
-    'setuptools',
-    'pip',
-    'wheel',
-]
+excludes = {excludes}
 
-a = Analysis(
-    ['main.py'],
-    pathex=['.'],
-    binaries=[],
-    datas=[
-        ('Images', 'Images'),
-        ('jokes.txt', '.'),
-    ],
-    hiddenimports=[
-        'pyautogui',
-        'cv2',
-        'PIL',
-        'numpy',
-        'rich',
-        'rich.console',
-        'rich.progress',
-        'rich.table',
-        'rich.panel'
-    ],
-    hookspath=[],
-    runtime_hooks=[],
-    excludes=excludes,
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
-    noarchive=False,
-)
+{get_pyinstaller_analysis_config()}
+
+# Override excludes for optimization
+a.excludes = excludes
 
 # Remove duplicate and unnecessary files
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
-    name='AutoSwiper',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=True,           # Strip debug symbols
-    upx=True,            # Use UPX compression
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,        # No console window
-    icon='logo.png'
-)
+{get_pyinstaller_exe_config(console_mode=False, enable_upx=True)}
 '''
     
     with open('AutoSwiper_optimized.spec', 'w') as f:
@@ -169,11 +96,7 @@ def build_optimized():
     print_styled("🔧 Building optimized Auto-Swiper executable...", "highlight")
     
     # Clean previous builds
-    build_dirs = ['build', 'dist']
-    for dir_name in build_dirs:
-        if os.path.exists(dir_name):
-            print_styled(f"🧹 Cleaning {dir_name}...", "info")
-            shutil.rmtree(dir_name)
+    clean_build_directories(['build', 'dist'])
     
     cmd = ['pyinstaller', 'AutoSwiper_optimized.spec']
     
@@ -198,9 +121,8 @@ def build_optimized():
         print_styled("✅ Optimized build successful!", "success")
         
         # Check file size
-        exe_path = Path('dist/AutoSwiper')
-        if exe_path.exists():
-            size_mb = exe_path.stat().st_size / (1024 * 1024)
+        size_mb = get_executable_size('dist/AutoSwiper')
+        if size_mb:
             print_styled(f"📊 Executable size: {size_mb:.1f} MB", "info")
         
         return True
@@ -261,7 +183,11 @@ def create_minimal_requirements():
     print_styled("💡 Use this for smaller builds: uv pip install -r requirements_minimal.txt", "info")
 
 def main():
-    show_banner()
+    show_banner(
+        "🚀 Auto-Swiper Optimized Build Tool",
+        "Size-optimized production builds with advanced compression",
+        "magenta"
+    )
     
     if len(sys.argv) > 1:
         action = sys.argv[1]

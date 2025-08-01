@@ -6,30 +6,40 @@ Fast development builds for local testing with modern optimizations
 
 import os
 import sys
-import shutil
 import subprocess
 import argparse
 import time
-import platform
 from pathlib import Path
-
-# Rich imports for beautiful terminal output
+# Handle imports for both direct execution and module import
 try:
-    from rich.console import Console
+    from .shared_utils import (
+        print_styled, show_banner, check_file_exists,
+        clean_build_directories, check_python_version,
+        check_tool_availability, HAS_RICH, console
+    )
+except ImportError:
+    from shared_utils import (
+        print_styled, show_banner, check_file_exists,
+        clean_build_directories, check_python_version,
+        check_tool_availability, HAS_RICH, console
+    )
+
+try:
     from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-
-    from rich.text import Text
     from rich import box
-    HAS_RICH = True
-    # Windows-compatible console setup
-    if platform.system() == "Windows":
-        console = Console(force_terminal=True, legacy_windows=False, width=120)
-    else:
-        console = Console()
 except ImportError:
-    HAS_RICH = False
-    console = None
+    # Define dummy classes for when Rich is not available
+    class Progress:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def add_task(self, *args, **kwargs): pass
+    
+    class SpinnerColumn: pass
+    class TextColumn: pass
+    class BarColumn: pass
+    class TimeElapsedColumn: pass
 
 # Modern Python features and optimizations
 if sys.version_info >= (3, 11):
@@ -38,53 +48,7 @@ if sys.version_info >= (3, 11):
 else:
     PYTHON_OPTIMIZED = False
 
-def print_styled(message: str, style: str = "info") -> None:
-    """Print with Rich styling if available, otherwise plain text"""
-    if HAS_RICH and console:
-        styles = {
-            "info": "blue",
-            "success": "green bold", 
-            "warning": "yellow",
-            "error": "red bold",
-            "highlight": "magenta bold",
-            "progress": "cyan"
-        }
-        console.print(f"[{styles.get(style, 'white')}]{message}[/]")
-    else:
-        # Fallback icons for non-Rich environments (Windows-safe)
-        if platform.system() == "Windows":
-            icons = {
-                "info": "[INFO]",
-                "success": "[OK]", 
-                "warning": "[WARN]",
-                "error": "[ERROR]",
-                "highlight": "[*]",
-                "progress": "[BUILD]"
-            }
-        else:
-            icons = {
-                "info": "🔧",
-                "success": "✅", 
-                "warning": "⚠️",
-                "error": "❌",
-                "highlight": "🎯",
-                "progress": "📦"
-            }
-        print(f"{icons.get(style, '')} {message}")
 
-def show_banner():
-    """Display a beautiful startup banner"""
-    if HAS_RICH and console:
-        banner = Panel(
-            Text("🎯 Auto-Swiper Quick Build Tool (2025 Edition)", style="bold blue"),
-            subtitle="Fast development builds with modern optimizations",
-            box=box.DOUBLE_EDGE,
-            style="blue"
-        )
-        console.print(banner)
-    else:
-        print("🎯 Auto-Swiper Quick Build Tool (2025 Edition)")
-        print("=" * 55)
 
 def create_build(console_mode: bool = False, use_uv: bool = False) -> bool:
     """Build the auto-swiper executable with modern optimizations"""
@@ -102,11 +66,7 @@ def create_build(console_mode: bool = False, use_uv: bool = False) -> bool:
             use_uv = False
     
     # Clean previous builds
-    build_dirs = ['build', 'dist', '__pycache__']
-    for dir_name in build_dirs:
-        if os.path.exists(dir_name):
-            print_styled(f"🧹 Cleaning {dir_name}...", "info")
-            shutil.rmtree(dir_name)
+    clean_build_directories(['build', 'dist', '__pycache__'])
     
     # Determine platform-specific settings
     import platform
@@ -306,7 +266,11 @@ python scripts/build_01_quick.py --use-uv           # Use uv for faster builds
     
     args = parser.parse_args()
     
-    show_banner()
+    show_banner(
+        "🎯 Auto-Swiper Quick Build Tool (2025 Edition)",
+        "Fast development builds with modern optimizations",
+        "blue"
+    )
     
     if args.spec:
         create_spec_file()
@@ -314,20 +278,14 @@ python scripts/build_01_quick.py --use-uv           # Use uv for faster builds
     
     # Check if required files exist
     required_files = ['main.py', 'Images', 'jokes.txt']
-    missing_files = [f for f in required_files if not os.path.exists(f)]
+    missing_files = check_file_exists(required_files)
     
     if missing_files:
         print_styled(f"❌ Missing required files: {missing_files}", "error")
         return False
     
     # Check Python version and give recommendations
-    python_version = sys.version_info
-    if python_version >= (3, 11):
-        print_styled(f"✅ Python {python_version.major}.{python_version.minor} - Excellent! Using latest optimizations", "success")
-    elif python_version >= (3, 9):
-        print_styled(f"✅ Python {python_version.major}.{python_version.minor} - Good compatibility", "success")
-    else:
-        print_styled(f"⚠️ Python {python_version.major}.{python_version.minor} - Consider upgrading to 3.11+ for better performance", "warning")
+    check_python_version()
     
     # Determine console mode
     console_mode = args.console or not args.no_console
@@ -337,10 +295,9 @@ python scripts/build_01_quick.py --use-uv           # Use uv for faster builds
     # Check for uv availability
     use_uv = args.use_uv
     if use_uv:
-        try:
-            subprocess.run(['uv', '--version'], capture_output=True, check=True)
+        if check_tool_availability('uv'):
             print_styled("⚡ uv detected - will use for faster dependency management", "success")
-        except (FileNotFoundError, subprocess.CalledProcessError):
+        else:
             print_styled("📦 uv not found - falling back to pip", "warning")
             use_uv = False
     

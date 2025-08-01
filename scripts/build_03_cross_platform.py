@@ -4,117 +4,41 @@ Cross-Platform Auto-Swiper Build Script
 Creates standalone executables for Windows, macOS, and Linux
 """
 
-import os
 import sys
 import platform
 import subprocess
-from pathlib import Path
-
-# Rich imports for beautiful terminal output
+# Handle imports for both direct execution and module import
 try:
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-
-    from rich.text import Text
-    from rich import box
-    HAS_RICH = True
-    
-    # Windows-compatible console setup
-    if platform.system() == "Windows":
-        # Windows-safe console without legacy renderer
-        console = Console(force_terminal=True, legacy_windows=False, width=120)
-    else:
-        console = Console()
+    from .shared_utils import (
+        print_styled, show_banner, check_file_exists,
+        get_platform_config, show_success_summary, HAS_RICH, console
+    )
 except ImportError:
-    HAS_RICH = False
-    console = None
+    from shared_utils import (
+        print_styled, show_banner, check_file_exists,
+        get_platform_config, show_success_summary, HAS_RICH, console
+    )
 
-def print_styled(message: str, style: str = "info") -> None:
-    """Print with Rich styling if available, otherwise plain text"""
-    if HAS_RICH and console:
-        styles = {
-            "info": "blue",
-            "success": "green bold", 
-            "warning": "yellow",
-            "error": "red bold",
-            "highlight": "magenta bold",
-            "progress": "cyan"
-        }
-        console.print(f"[{styles.get(style, 'white')}]{message}[/]")
-    else:
-        # Fallback icons for non-Rich environments (Windows-safe)
-        if platform.system() == "Windows":
-            icons = {
-                "info": "[INFO]",
-                "success": "[OK]", 
-                "warning": "[WARN]",
-                "error": "[ERROR]",
-                "highlight": "[*]",
-                "progress": "[BUILD]"
-            }
-        else:
-            icons = {
-                "info": "ℹ️",
-                "success": "✅", 
-                "warning": "⚠️",
-                "error": "❌",
-                "highlight": "🎯",
-                "progress": "📦"
-            }
-        print(f"{icons.get(style, '')} {message}")
+try:
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+except ImportError:
+    # Define dummy classes for when Rich is not available
+    class Progress:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def add_task(self, *args, **kwargs): pass
+    
+    class SpinnerColumn: pass
+    class TextColumn: pass
+    class BarColumn: pass
+    class TimeElapsedColumn: pass
 
-def show_banner():
-    """Display a beautiful startup banner"""
-    system = platform.system()
-    
-    # Windows-safe text without emojis
-    if system == "Windows":
-        title_text = "Auto-Swiper Cross-Platform Build Tool"
-        fallback_text = "Auto-Swiper Cross-Platform Build Tool"
-    else:
-        title_text = "🌍 Auto-Swiper Cross-Platform Build Tool"
-        fallback_text = "🌍 Auto-Swiper Cross-Platform Build Tool"
-    
-    if HAS_RICH and console:
-        banner = Panel(
-            Text(title_text, style="bold cyan"),
-            subtitle=f"Building for {system} with universal compatibility",
-            box=box.DOUBLE_EDGE,
-            style="cyan"
-        )
-        console.print(banner)
-    else:
-        print(fallback_text)
-        print(f"Building for {system}")
-        print("=" * 60)
 
-def get_platform_config():
-    """Get platform-specific build configuration"""
-    system = platform.system().lower()
-    
-    configs = {
-        'windows': {
-            'separator': ';',
-            'executable_extension': '.exe',
-            'icon_option': '--icon=logo.ico',  # Windows uses .ico
-            'extra_options': ['--hidden-import=win32gui', '--hidden-import=win32con']
-        },
-        'darwin': {  # macOS
-            'separator': ':',
-            'executable_extension': '',
-            'icon_option': '--icon=logo.icns',  # macOS uses .icns
-            'extra_options': ['--osx-bundle-identifier=com.autoswiper.app']
-        },
-        'linux': {
-            'separator': ':',
-            'executable_extension': '',
-            'icon_option': '--icon=logo.png',
-            'extra_options': []
-        }
-    }
-    
-    return configs.get(system, configs['linux'])
+
+
+
+
 
 def create_platform_executable():
     """Create executable for current platform"""
@@ -245,7 +169,19 @@ jobs:
     print_styled(f"📝 Created GitHub Actions workflow: {workflow_file}", "success")
 
 def main():
-    show_banner()
+    system = platform.system()
+    
+    # Windows-safe text without emojis
+    if system == "Windows":
+        title_text = "Auto-Swiper Cross-Platform Build Tool"
+    else:
+        title_text = "🌍 Auto-Swiper Cross-Platform Build Tool"
+    
+    show_banner(
+        title_text,
+        f"Building for {system} with universal compatibility",
+        "cyan"
+    )
     
     if len(sys.argv) > 1 and sys.argv[1] == '--github-actions':
         create_github_actions_workflow()
@@ -253,7 +189,7 @@ def main():
     
     # Check if required files exist
     required_files = ['main.py', 'Images', 'jokes.txt']
-    missing_files = [f for f in required_files if not os.path.exists(f)]
+    missing_files = check_file_exists(required_files)
     
     if missing_files:
         print_styled(f"❌ Missing required files: {missing_files}", "error")
@@ -264,24 +200,14 @@ def main():
     if success:
         system = platform.system()
         
-        if HAS_RICH and console:
-            success_panel = Panel(
-                f"[green]🎉 {system} build completed successfully![/green]\n\n"
-                "[bold]📋 Distribution Guide:[/bold]\n"
-                f"• {system} users can run the executable directly\n"
-                "• No Python installation required\n"
-                "• All dependencies are bundled",
-                title="Build Complete",
-                box=box.ROUNDED,
-                style="green"
-            )
-            console.print(success_panel)
-        else:
-            print_styled(f"\n🎉 {system} build completed successfully!", "success")
-            print_styled("\n📋 Distribution Guide:", "info")
-            print_styled(f"• {system} users can run the executable directly", "info")
-            print_styled("• No Python installation required", "info")
-            print_styled("• All dependencies are bundled", "info")
+        show_success_summary(
+            f"{system}",
+            [
+                f"{system} users can run the executable directly",
+                "No Python installation required",
+                "All dependencies are bundled"
+            ]
+        )
         
         if system == 'Darwin':  # macOS
             print_styled("\n🍎 macOS Notes:", "warning")

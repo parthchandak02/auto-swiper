@@ -5,31 +5,30 @@ Modern build orchestrator with support for different build types and targets
 """
 
 import argparse
-import os
 import sys
 import subprocess
-import platform
 from pathlib import Path
 from typing import List, Optional
 from dataclasses import dataclass
 from enum import Enum
-
-# Try to use rich for better output, fallback to standard print
+# Handle imports for both direct execution and module import
 try:
-    from rich.console import Console
+    from .shared_utils import (
+        print_styled, check_python_version, check_tool_availability,
+        check_file_exists, HAS_RICH, console
+    )
+except ImportError:
+    from shared_utils import (
+        print_styled, check_python_version, check_tool_availability,
+        check_file_exists, HAS_RICH, console
+    )
+
+try:
     from rich.table import Table
     from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn
-
-    # Windows-compatible console setup
-    if platform.system() == "Windows":
-        console = Console(force_terminal=True, legacy_windows=False, width=120)
-    else:
-        console = Console()
-    HAS_RICH = True
 except ImportError:
-    HAS_RICH = False
-    console = None
+    pass
 
 class BuildType(Enum):
     """Available build types"""
@@ -57,76 +56,33 @@ class BuildConfig:
     include_debug: bool = False
     custom_spec: Optional[str] = None
 
-def print_styled(message: str, style: str = "info") -> None:
-    """Print with styling if rich is available, otherwise plain text"""
-    if HAS_RICH and console:
-        styles = {
-            "info": "blue",
-            "success": "green", 
-            "warning": "yellow",
-            "error": "red",
-            "highlight": "magenta bold"
-        }
-        console.print(f"[{styles.get(style, 'white')}]{message}[/]")
-    else:
-        # Fallback icons for non-Rich environments (Windows-safe)
-        if platform.system() == "Windows":
-            icons = {
-                "info": "[INFO]",
-                "success": "[OK]", 
-                "warning": "[WARN]",
-                "error": "[ERROR]",
-                "highlight": "[*]"
-            }
-        else:
-            icons = {
-                "info": "ℹ️",
-                "success": "✅", 
-                "warning": "⚠️",
-                "error": "❌",
-                "highlight": "🎯"
-            }
-        print(f"{icons.get(style, '')} {message}")
+
 
 def check_prerequisites() -> bool:
     """Check if all required tools and files are available"""
     print_styled("🔍 Checking prerequisites...", "info")
     
-    # Check Python version (3.11+ recommended for best performance)
-    python_version = sys.version_info
-    if python_version < (3, 8):
-        print_styled(f"❌ Python 3.8+ required, found {python_version.major}.{python_version.minor}", "error")
+    # Check Python version
+    if not check_python_version():
         return False
-    
-    if python_version < (3, 11):
-        print_styled(f"⚠️ Python 3.11+ recommended for best performance (current: {python_version.major}.{python_version.minor})", "warning")
     
     # Check required files
     required_files = ["main.py", "requirements.txt", "Images", "jokes.txt"]
-    missing_files = [f for f in required_files if not os.path.exists(f)]
+    missing_files = check_file_exists(required_files)
     
     if missing_files:
         print_styled(f"❌ Missing required files: {missing_files}", "error")
         return False
     
     # Check for PyInstaller
-    try:
-        subprocess.run(["pyinstaller", "--version"], capture_output=True, check=True)
+    if check_tool_availability("pyinstaller"):
         print_styled("✅ PyInstaller found", "success")
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    else:
         print_styled("❌ PyInstaller not found. Install with: uv pip install pyinstaller", "error")
         return False
     
     # Check for optional tools
-    tools_status = {}
-    for tool in ["uv", "ruff", "black"]:
-        try:
-            subprocess.run([tool, "--version"], capture_output=True, check=True)
-            tools_status[tool] = True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            tools_status[tool] = False
-    
-    if tools_status["uv"]:
+    if check_tool_availability("uv"):
         print_styled("✅ uv found (faster dependency management)", "success")
     else:
         print_styled("💡 Consider installing uv for faster builds: curl -LsSf https://astral.sh/uv/install.sh | sh", "info")
