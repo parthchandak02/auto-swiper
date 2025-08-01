@@ -185,8 +185,11 @@ def create_default_user_jokes():
     return False
 
 def loadJokes(filename):
-    """Enhanced joke loading with user customization support"""
-    jokes = []
+    """Enhanced joke loading with user customization support and source tracking"""
+    jokes_with_source = []  # List of tuples: (joke_text, source_type)
+    custom_count = 0
+    default_count = 0
+    fallback_used = False
     
     # 1. First, try to load user's custom jokes
     user_jokes_path = get_user_jokes_path()
@@ -200,9 +203,10 @@ def loadJokes(filename):
                 user_jokes = [line.strip() for line in user_lines 
                              if line.strip() and not line.strip().startswith('#')]
                 if user_jokes:
-                    jokes.extend(user_jokes)
+                    for joke in user_jokes:
+                        jokes_with_source.append((joke, "custom"))
+                    custom_count = len(user_jokes)
                     user_jokes_loaded = True
-                    console.print(f"[green]🎨[/green] Loaded [cyan]{len(user_jokes)}[/cyan] custom jokes from [blue]{user_jokes_path.name}[/blue]")
         except Exception as e:
             console.print(f"[yellow]⚠[/yellow] Error reading custom jokes: {e}")
     
@@ -212,8 +216,9 @@ def loadJokes(filename):
         with open(bundled_jokes_path, 'r', encoding='utf-8') as file:
             default_jokes = file.read().splitlines()
             default_jokes = [joke.strip() for joke in default_jokes if joke.strip()]
-            jokes.extend(default_jokes)
-            console.print(f"[blue]📦[/blue] Loaded [cyan]{len(default_jokes)}[/cyan] default jokes")
+            for joke in default_jokes:
+                jokes_with_source.append((joke, "default"))
+            default_count = len(default_jokes)
     except Exception as e:
         console.print(f"[yellow]⚠[/yellow] Error reading bundled jokes: {e}")
     
@@ -222,12 +227,96 @@ def loadJokes(filename):
         create_default_user_jokes()
     
     # 4. Fallback if no jokes loaded
-    if not jokes:
-        jokes = ["Hey there! 😊", "You seem interesting!", "Coffee sometime?"]
-        console.print(f"[cyan]🔄[/cyan] Using fallback jokes")
+    if not jokes_with_source:
+        fallback_jokes = ["Hey there! 😊", "You seem interesting!", "Coffee sometime?"]
+        for joke in fallback_jokes:
+            jokes_with_source.append((joke, "fallback"))
+        fallback_used = True
     
-    console.print(f"[green]✅[/green] Total active jokes: [bold cyan]{len(jokes)}[/bold cyan]")
-    return jokes
+    # 5. Show comprehensive joke loading summary
+    show_jokes_summary(custom_count, default_count, fallback_used, user_jokes_path)
+    
+    return jokes_with_source
+
+def show_jokes_summary(custom_count, default_count, fallback_used, user_jokes_path):
+    """Display a beautiful summary of joke sources"""
+    try:
+        from rich.table import Table
+        from rich.panel import Panel
+        from rich import box
+        
+        # Create jokes source table
+        table = Table(box=box.ROUNDED, title="💬 Message Sources", title_style="bold blue")
+        table.add_column("Source", style="white", width=20)
+        table.add_column("Count", justify="center", style="cyan", width=8)
+        table.add_column("Status", width=25)
+        
+        # Add rows based on what was loaded
+        if custom_count > 0:
+            table.add_row(
+                "🎨 Your Custom Messages", 
+                str(custom_count), 
+                "[bold green]✅ Active[/bold green]"
+            )
+        else:
+            table.add_row(
+                "🎨 Your Custom Messages", 
+                "0", 
+                "[yellow]📝 Use --jokes to customize[/yellow]"
+            )
+        
+        if default_count > 0:
+            table.add_row(
+                "📦 Bundled Defaults", 
+                str(default_count), 
+                "[blue]✅ Loaded[/blue]"
+            )
+        
+        if fallback_used:
+            table.add_row(
+                "🔄 Emergency Fallback", 
+                "3", 
+                "[yellow]⚠️  In Use[/yellow]"
+            )
+        
+        total = custom_count + default_count + (3 if fallback_used else 0)
+        table.add_row("", "", "", style="dim")
+        table.add_row(
+            "[bold]📊 Total Active", 
+            f"[bold cyan]{total}[/bold cyan]", 
+            "[bold green]Ready to Send![/bold green]"
+        )
+        
+        console.print(table)
+        
+        # Show helpful tip based on status
+        if custom_count == 0:
+            tip = Panel.fit(
+                f"[yellow]💡 Tip:[/yellow] Customize your messages!\n"
+                f"[cyan]→[/cyan] Run [white]AutoSwiper --jokes[/white] to open: [blue]{user_jokes_path.name}[/blue]\n"
+                f"[cyan]→[/cyan] Edit the file to add your own pickup lines\n"
+                f"[cyan]→[/cyan] Your messages will be mixed with defaults for variety",
+                title="🎨 Make It Personal",
+                border_style="yellow"
+            )
+            console.print(tip)
+        else:
+            tip = Panel.fit(
+                f"[green]🎉 Great![/green] Using your personalized messages!\n"
+                f"[cyan]→[/cyan] Edit anytime: [blue]{user_jokes_path}[/blue]\n"
+                f"[cyan]→[/cyan] Your {custom_count} custom + {default_count} default = [bold]{custom_count + default_count}[/bold] total variety",
+                title="✨ Personalized Experience",
+                border_style="green"
+            )
+            console.print(tip)
+            
+    except ImportError:
+        # Fallback for systems without Rich
+        print(f"📊 Jokes loaded: {custom_count} custom + {default_count} default = {custom_count + default_count} total")
+        if custom_count == 0:
+            print(f"💡 Tip: Run 'AutoSwiper --jokes' to customize your messages!")
+    
+    console.print()  # Add spacing
 
 def open_jokes_folder():
     """Open the folder containing the custom jokes file"""
@@ -248,23 +337,54 @@ def open_jokes_folder():
     except Exception as e:
         console.print(f"[yellow]⚠[/yellow] Could not open folder. Path: [blue]{user_jokes_path}[/blue]")
 
-def randomPunGenerator(jokes):
-    return random.choice(jokes) if jokes else "No jokes available"
+def randomPunGenerator(jokes_with_source):
+    """Select a random joke and return both the text and source"""
+    if not jokes_with_source:
+        return "No jokes available", "fallback"
+    
+    joke_text, source_type = random.choice(jokes_with_source)
+    return joke_text, source_type
 
-def sequence(jokes):
-    """Enhanced sequence with Rich message display"""
+def get_source_emoji_and_style(source_type):
+    """Get emoji and styling for different joke sources"""
+    source_info = {
+        "custom": ("🎨", "bold green", "Your Custom"),
+        "default": ("📦", "blue", "Default"),
+        "fallback": ("🔄", "yellow", "Fallback")
+    }
+    return source_info.get(source_type, ("❓", "white", "Unknown"))
+
+def sequence(jokes_with_source):
+    """Enhanced sequence with Rich message display and source tracking"""
     defaultLoc()
     clickFromLocation(heartImg)
     wait(defaultWaitTimeSecs)
     clickFromLocation(commentImg)
     wait(defaultWaitTimeSecs)
-    msg = randomPunGenerator(jokes)
     
-    # Display joke in a beautiful panel
+    # Get joke and source information
+    msg, source_type = randomPunGenerator(jokes_with_source)
+    source_emoji, source_style, source_name = get_source_emoji_and_style(source_type)
+    
+    # Display joke in a beautiful panel with source information
+    joke_content = Text()
+    joke_content.append(msg, style="italic cyan")
+    joke_content.append("\n\n", style="dim")
+    joke_content.append(f"{source_emoji} Source: ", style="dim")
+    joke_content.append(f"{source_name}", style=source_style)
+    
+    # Choose border color based on source
+    border_colors = {
+        "custom": "green",
+        "default": "blue", 
+        "fallback": "yellow"
+    }
+    border_color = border_colors.get(source_type, "cyan")
+    
     joke_panel = Panel(
-        Text(msg, style="italic cyan"),
-        title="[bold blue]💬 Random Message[/bold blue]",
-        border_style="cyan",
+        joke_content,
+        title=f"[bold blue]💬 Message #{counter}[/bold blue]",
+        border_style=border_color,
         box=box.ROUNDED
     )
     console.print(joke_panel)
