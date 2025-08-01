@@ -37,6 +37,16 @@ MANIFEST
 *.manifest
 *.spec
 
+# Auto-Swiper specific build files
+AutoSwiper_optimized.spec
+requirements_minimal.txt
+
+# Runtime logs
+log.txt
+*.log
+
+
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
