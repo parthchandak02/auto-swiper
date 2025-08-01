@@ -262,8 +262,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4 # v4.1.7
         with:
-          persist-credentials: false
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
