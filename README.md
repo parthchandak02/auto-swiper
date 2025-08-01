@@ -20,6 +20,7 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 
 - [📥 Download Now](#-download-now---no-python-required)
 - [🚀 Quick Start](#-quick-start)
+- [🎨 Personalizing Your Messages](#-personalizing-your-messages)
 - [✨ Features](#-features)
 - [🛠️ Development Setup](#️-development-setup)
 - [📦 Building & Distribution](#-building--distribution)
@@ -59,15 +60,68 @@ uv pip install -r requirements.txt
 python main.py
 ```
 
+## 🎨 Personalizing Your Messages
+
+**Auto-Swiper lets you completely customize the pickup lines and messages it sends!**
+
+### 📝 How to Add Your Own Messages
+
+1. **Automatic Setup**: The first time you run Auto-Swiper, it creates a custom jokes file
+2. **Easy Editing**: Find the file at `~/Documents/AutoSwiper_CustomJokes.txt`
+3. **Quick Access**: Run `AutoSwiper --jokes` to open the folder instantly
+
+### 📂 Opening Your Custom File
+
+```bash
+# Open the jokes folder directly
+AutoSwiper --jokes
+
+# Or navigate manually to:
+# Windows: C:\Users\YourName\Documents\AutoSwiper_CustomJokes.txt
+# macOS: ~/Documents/AutoSwiper_CustomJokes.txt  
+# Linux: ~/Documents/AutoSwiper_CustomJokes.txt
+```
+
+### ✏️ Editing Your Messages
+
+The custom file includes helpful examples and instructions:
+
+```
+# AutoSwiper Custom Jokes
+# Edit this file to add your own pickup lines and messages!
+# Each line is a separate message (lines starting with # are ignored)
+
+Hey there! You seem awesome 😊
+Your smile is absolutely stunning!
+Coffee date? ☕
+What's your favorite way to spend weekends?
+
+# Add your own lines below:
+# (Remove the # to activate them)
+# Your custom message here
+```
+
+### 💡 Tips for Great Messages
+
+- **Be authentic** - write in your own voice
+- **Ask questions** - show genuine interest  
+- **Keep it light** - humor works well
+- **Be respectful** - always be kind and considerate
+- **Use emojis** - they add personality (but don't overdo it)
+
+---
+
 ## ✨ Features
 
 - **🎯 Automated Swiping**: Automatically like profiles on Hinge
-- **💬 Custom Messages**: Randomized jokes and messages for interactions
+- **💬 Custom Messages**: Fully customizable pickup lines and messages 
+- **🎨 Easy Personalization**: Edit your own jokes in a simple text file
 - **📊 Beautiful Terminal UI**: Enhanced with Rich library for gorgeous output
 - **📈 Real-time Progress**: Live progress bars and statistics tables
-- **🎨 Colorful Status**: Rich colors and emojis for better visual feedback
+- **🌈 Colorful Status**: Rich colors and emojis for better visual feedback
 - **📋 Smart Logging**: Beautiful terminal tables plus traditional log files
 - **🔄 Error Resilience**: Continues operation even if UI elements aren't found
+- **⚡ Loading Screen**: Beautiful startup animation while app initializes
 - **⚡ Standalone Distribution**: No Python installation required for end users
 - **🌍 Cross-Platform**: Works on Windows, macOS, and Linux
 
