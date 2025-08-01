@@ -2,8 +2,12 @@ name: Build Auto-Swiper Executables
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main ]  # Auto-trigger on every main push - no manual tagging needed!
+    paths:
+      - 'main.py'
+      - 'requirements.txt'
+      - 'scripts/**'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
   pull_request:
     branches: [ main ]
@@ -24,6 +28,45 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
+  # Auto-increment version for main branch pushes
+  auto-version:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history for version detection
+          
+      - name: Auto-increment version
+        id: version
+        run: |
+          # Get the latest tag (if any)
+          LATEST_TAG=$(git tag -l "v*" --sort=-version:refname | head -n 1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags exist, start with v1.0.0
+            NEW_VERSION="v1.0.0"
+          else
+            # Extract version numbers and increment patch version
+            VERSION_NUM=$(echo $LATEST_TAG | sed 's/v//')
+            MAJOR=$(echo $VERSION_NUM | cut -d. -f1)
+            MINOR=$(echo $VERSION_NUM | cut -d. -f2)
+            PATCH=$(echo $VERSION_NUM | cut -d. -f3)
+            
+            # Increment patch version
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+          
+          echo "Previous version: $LATEST_TAG"
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
+
   # Security validation job
   security-scan:
     runs-on: ubuntu-latest
@@ -69,7 +112,7 @@ jobs:
 
   build:
     runs-on: ${{ matrix.os }}
-    needs: [security-scan]
+    needs: [auto-version, security-scan]
     if: always() && (needs.security-scan.result == 'success' || github.event_name != 'pull_request')
     
     env:
@@ -186,10 +229,10 @@ jobs:
           path: dist/${{ matrix.artifact_name }}
           retention-days: 30
 
-  # Automatic releases for easy access to latest builds
-  release-latest:
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || startsWith(github.ref, 'refs/tags/')
-    needs: [build]
+  # Automatic release with auto-incremented version (only for main pushes)
+  auto-release:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [auto-version, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -229,52 +272,55 @@ jobs:
           find latest-release/ -name "AutoSwiper*" -exec cp {} ./ \;
           ls -la AutoSwiper*
           
-      - name: Delete existing 'latest' release and tag
+      - name: Create Git Tag
         run: |
-          # Delete the release (if it exists)
-          gh release delete latest --yes || true
-          # Delete the tag (if it exists)  
-          git push --delete origin latest || true
+          # Create and push the auto-incremented tag
+          git tag ${{ needs.auto-version.outputs.version_tag }}
+          git push origin ${{ needs.auto-version.outputs.version_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Create Latest Release
+      - name: Create Official Release
         uses: softprops/action-gh-release@v1 # v1.0.0
         with:
-          tag_name: latest
-          name: "🔥 Latest Auto-Swiper (Bleeding Edge)"
+          tag_name: ${{ needs.auto-version.outputs.version_tag }}
+          name: "🚀 Auto-Swiper ${{ needs.auto-version.outputs.version_tag }} - Ready to Download!"
           body: |
-            # ⚡ **Latest Auto-Swiper Build** - Hot off the press! 
+            # 🎉 Auto-Swiper ${{ needs.auto-version.outputs.version_tag }} is here!
             
-            > 🚨 **Latest Development Build** - Get the newest features first!  
-            > For stable releases, check the [📋 Releases page](${{ github.server_url }}/${{ github.repository }}/releases).
-            
-            ## 📥 **Download Latest** (No Python needed!)
+            ## 📥 **Quick Download** (No Python needed!)
             
             | Platform | File | Size | Status |
             |----------|------|------|--------|
-            | 🪟 **Windows** | `AutoSwiper.exe` | ~143 KB | 🔥 Latest |
-            | 🍎 **macOS** | `AutoSwiper-macOS` | ~56 MB | 🔥 Latest |
-            | 🐧 **Linux** | `AutoSwiper-Linux` | ~109 MB | 🔥 Latest |
+            | 🪟 **Windows** | `AutoSwiper.exe` | ~143 KB | ✅ Stable |
+            | 🍎 **macOS** | `AutoSwiper-macOS` | ~56 MB | ✅ Stable |
+            | 🐧 **Linux** | `AutoSwiper-Linux` | ~109 MB | ✅ Stable |
             
             ## 🚀 **Quick Start** (30 seconds!)
             
             ### Windows: `AutoSwiper.exe` → Double-click and go! 🎉
-            ### macOS: `AutoSwiper-macOS` → Right-click "Open" 💫  
+            ### macOS: `AutoSwiper-macOS` → Right-click "Open" → Allow security override 💫  
             ### Linux: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux` 🐧
             
-            ## ⚡ **What's New in This Build:**
+            ## ⚡ **What's New:**
             ```
             ${{ github.event.head_commit.message }}
             ```
             
+            ## 🔧 **Features:**
+            - ✅ No Python installation required
+            - ✅ Works with Bluestacks and Android emulators  
+            - ✅ Smart auto-swiping for Hinge
+            - ✅ Rich terminal interface
+            - ✅ Cross-platform compatibility
+            
             ---
             
-            **📊 Build Info:**
-            - **📅 Built:** ${{ github.event.head_commit.timestamp }}  
+            **📊 Release Info:**
+            - **📅 Released:** ${{ github.event.head_commit.timestamp }}  
             - **🔗 Commit:** [${{ github.sha }}](${{ github.event.head_commit.url }})  
             - **👤 Author:** ${{ github.event.head_commit.author.name }}
-            - **🌿 Branch:** `main` (bleeding edge)
+            - **🏷️ Version:** Auto-incremented stable release
           files: |
             AutoSwiper.exe
             AutoSwiper-macOS
@@ -284,80 +330,3 @@ jobs:
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Official versioned releases (when tags are pushed)
-  release-versioned:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: audit
-          
-      - name: Download all release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: release-*
-          path: release-assets/
-          
-      - name: Prepare release assets
-        run: |
-          find release-assets/ -name "AutoSwiper*" -exec cp {} ./ \;
-          ls -la AutoSwiper*
-          
-      - name: Create Release
-        uses: softprops/action-gh-release@v1 # v1.0.0
-        with:
-          files: |
-            AutoSwiper.exe
-            AutoSwiper-macOS
-            AutoSwiper-Linux
-          draft: false
-          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
-          generate_release_notes: true
-          tag_name: ${{ github.ref_name }}
-          name: "🚀 Auto-Swiper ${{ github.ref_name }} - Ready to Download!"
-          body: |
-            # 🎉 Auto-Swiper ${{ github.ref_name }} is here!
-            
-            ## 📥 **Quick Download** (No Python needed!)
-            
-            | Platform | File | Size | Status |
-            |----------|------|------|--------|
-            | 🪟 **Windows** | `AutoSwiper.exe` | ~143 KB | ✅ Ready |
-            | 🍎 **macOS** | `AutoSwiper-macOS` | ~56 MB | ✅ Ready |
-            | 🐧 **Linux** | `AutoSwiper-Linux` | ~109 MB | ✅ Ready |
-            
-            ## 🚀 **Getting Started** (30 seconds!)
-            
-            ### Windows Users:
-            1. Download `AutoSwiper.exe`
-            2. Double-click to run - that's it! 🎉
-            
-            ### macOS Users:
-            1. Download `AutoSwiper-macOS`
-            2. Right-click → "Open" (bypass security warning)
-            3. You're ready to swipe! 💫
-            
-            ### Linux Users:
-            1. Download `AutoSwiper-Linux`
-            2. Run: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
-            3. Enjoy! 🐧
-            
-            ## ✨ **What's New?**
-            Auto-generated release notes will appear below this section.
-            
-            ---
-            
-            **🔧 Technical Details:**
-            - Built with Python ${{ env.PYTHON_VERSION }}
-            - Enhanced Rich UI with emoji support 
-            - Cross-platform compatibility
-            - Zero dependencies required
-            
-            Built: ${{ github.event.head_commit.timestamp }}
