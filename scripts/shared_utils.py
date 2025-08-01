@@ -20,9 +20,23 @@ try:
     from rich import box
     HAS_RICH = True
     
-    # Windows-compatible console setup
+    # Windows-compatible console setup with proper UTF-8 encoding
     if platform.system() == "Windows":
-        console = Console(force_terminal=True, legacy_windows=False, width=120)
+        # Force UTF-8 encoding on Windows to handle Unicode characters
+        import sys
+        if hasattr(sys.stdout, 'reconfigure'):
+            try:
+                sys.stdout.reconfigure(encoding='utf-8')
+                sys.stderr.reconfigure(encoding='utf-8')
+            except:
+                pass
+        console = Console(
+            force_terminal=True, 
+            legacy_windows=False, 
+            width=120,
+            file=sys.stdout,
+            force_encoding='utf-8'
+        )
     else:
         console = Console()
 except ImportError:
@@ -30,8 +44,44 @@ except ImportError:
     console = None
 
 
+def _safe_encode_message(message: str) -> str:
+    """Safely encode message for Windows compatibility"""
+    if platform.system() == "Windows":
+        # Replace problematic Unicode characters with Windows-safe alternatives
+        replacements = {
+            '🚀': '[ROCKET]',
+            '🎯': '[TARGET]', 
+            '📦': '[PACKAGE]',
+            '✅': '[OK]',
+            '❌': '[ERROR]',
+            '⚠️': '[WARN]',
+            'ℹ️': '[INFO]',
+            '🧹': '[CLEAN]',
+            '🌍': '[GLOBE]',
+            '🔧': '[TOOL]',
+            '🍎': '[APPLE]',
+            '🪟': '[WINDOWS]',
+            '💡': '[IDEA]',
+            '📋': '[CLIPBOARD]',
+            '📊': '[CHART]',
+            '🎉': '[PARTY]',
+            '🔍': '[SEARCH]',
+            '⚡': '[ZAP]',
+            '🖥️': '[COMPUTER]',
+            '🐍': '[SNAKE]'
+        }
+        
+        for emoji, replacement in replacements.items():
+            message = message.replace(emoji, replacement)
+    
+    return message
+
+
 def print_styled(message: str, style: str = "info") -> None:
     """Print with Rich styling if available, otherwise plain text"""
+    # Ensure message is Windows-safe
+    safe_message = _safe_encode_message(message)
+    
     if HAS_RICH and console:
         styles = {
             "info": "blue",
@@ -41,7 +91,11 @@ def print_styled(message: str, style: str = "info") -> None:
             "highlight": "magenta bold",
             "progress": "cyan"
         }
-        console.print(f"[{styles.get(style, 'white')}]{message}[/]")
+        try:
+            console.print(f"[{styles.get(style, 'white')}]{safe_message}[/]")
+        except UnicodeEncodeError:
+            # Fallback to plain print if Rich still fails
+            print(f"{safe_message}")
     else:
         # Fallback icons for non-Rich environments (Windows-safe)
         if platform.system() == "Windows":
@@ -62,25 +116,37 @@ def print_styled(message: str, style: str = "info") -> None:
                 "highlight": "🎯",
                 "progress": "📦"
             }
-        print(f"{icons.get(style, '')} {message}")
+        safe_icon = _safe_encode_message(icons.get(style, ''))
+        print(f"{safe_icon} {safe_message}")
 
 
 def show_banner(title: str, subtitle: str = "", style: str = "blue") -> None:
     """Display a beautiful startup banner"""
+    # Ensure title and subtitle are Windows-safe
+    safe_title = _safe_encode_message(title)
+    safe_subtitle = _safe_encode_message(subtitle)
+    
     if HAS_RICH and console:
-        banner_text = Text(title, style=f"bold {style}")
-        banner = Panel(
-            banner_text,
-            subtitle=subtitle if subtitle else None,
-            box=box.DOUBLE_EDGE,
-            style=style
-        )
-        console.print(banner)
+        try:
+            banner_text = Text(safe_title, style=f"bold {style}")
+            banner = Panel(
+                banner_text,
+                subtitle=safe_subtitle if safe_subtitle else None,
+                box=box.DOUBLE_EDGE,
+                style=style
+            )
+            console.print(banner)
+        except UnicodeEncodeError:
+            # Fallback to plain text banner
+            print(safe_title)
+            if safe_subtitle:
+                print(safe_subtitle)
+            print("=" * len(safe_title))
     else:
-        print(title)
-        if subtitle:
-            print(subtitle)
-        print("=" * len(title))
+        print(safe_title)
+        if safe_subtitle:
+            print(safe_subtitle)
+        print("=" * len(safe_title))
 
 
 def run_with_progress(cmd: List[str], description: str = "Running command...") -> bool:
@@ -250,38 +316,62 @@ def show_success_summary(build_type: str, additional_info: List[str] = None) -> 
     if additional_info is None:
         additional_info = []
     
+    # Ensure all content is Windows-safe
+    safe_build_type = _safe_encode_message(build_type)
+    safe_additional_info = [_safe_encode_message(info) for info in additional_info]
+    
     if HAS_RICH and console:
-        info_text = "\n".join([f"  • {info}" for info in additional_info])
-        content = f"[green]🎉 {build_type} build completed successfully![/green]"
-        if info_text:
-            content += f"\n\n[bold]📋 Information:[/bold]\n{info_text}"
-        
-        success_panel = Panel(
-            content,
-            title="Build Complete",
-            box=box.ROUNDED,
-            style="green"
-        )
-        console.print(success_panel)
+        try:
+            info_text = "\n".join([f"  • {info}" for info in safe_additional_info])
+            safe_info_text = _safe_encode_message(info_text)
+            content = f"[green]🎉 {safe_build_type} build completed successfully![/green]"
+            safe_content = _safe_encode_message(content)
+            
+            if safe_info_text:
+                safe_content += f"\n\n[bold]📋 Information:[/bold]\n{safe_info_text}"
+                safe_content = _safe_encode_message(safe_content)
+            
+            success_panel = Panel(
+                safe_content,
+                title="Build Complete",
+                box=box.ROUNDED,
+                style="green"
+            )
+            console.print(success_panel)
+        except UnicodeEncodeError:
+            # Fallback to plain text
+            print_styled(f"\n{safe_build_type} build completed successfully!", "success")
+            for info in safe_additional_info:
+                print_styled(f"  • {info}", "info")
     else:
-        print_styled(f"\n🎉 {build_type} build completed successfully!", "success")
-        for info in additional_info:
+        print_styled(f"\n{safe_build_type} build completed successfully!", "success")
+        for info in safe_additional_info:
             print_styled(f"  • {info}", "info")
 
 
 def create_dependency_table(dependencies: Dict[str, str]) -> None:
     """Create a Rich table showing dependencies"""
+    safe_title = _safe_encode_message("📋 Dependencies")
+    
     if HAS_RICH and console:
-        table = Table(title="📋 Dependencies", box=box.ROUNDED)
-        table.add_column("Package", style="cyan")
-        table.add_column("Version", style="green")
-        
-        for name, version in dependencies.items():
-            table.add_row(name, version)
-        
-        console.print(table)
+        try:
+            table = Table(title=safe_title, box=box.ROUNDED)
+            table.add_column("Package", style="cyan")
+            table.add_column("Version", style="green")
+            
+            for name, version in dependencies.items():
+                safe_name = _safe_encode_message(name)
+                safe_version = _safe_encode_message(version)
+                table.add_row(safe_name, safe_version)
+            
+            console.print(table)
+        except UnicodeEncodeError:
+            # Fallback to plain text
+            print_styled(safe_title, "info")
+            for name, version in dependencies.items():
+                print_styled(f"  {name}: {version}", "info")
     else:
-        print_styled("📋 Dependencies:", "info")
+        print_styled(safe_title, "info")
         for name, version in dependencies.items():
             print_styled(f"  {name}: {version}", "info")
 
@@ -292,16 +382,16 @@ def check_python_version() -> bool:
     
     python_version = sys.version_info
     if python_version >= (3, 11):
-        print_styled(f"✅ Python {python_version.major}.{python_version.minor} - Excellent! Using latest optimizations", "success")
+        print_styled(f"Python {python_version.major}.{python_version.minor} - Excellent! Using latest optimizations", "success")
         return True
     elif python_version >= (3, 9):
-        print_styled(f"✅ Python {python_version.major}.{python_version.minor} - Good compatibility", "success")
+        print_styled(f"Python {python_version.major}.{python_version.minor} - Good compatibility", "success")
         return True
     elif python_version >= (3, 8):
-        print_styled(f"⚠️ Python {python_version.major}.{python_version.minor} - Consider upgrading to 3.11+ for better performance", "warning")
+        print_styled(f"Python {python_version.major}.{python_version.minor} - Consider upgrading to 3.11+ for better performance", "warning")
         return True
     else:
-        print_styled(f"❌ Python 3.8+ required, found {python_version.major}.{python_version.minor}", "error")
+        print_styled(f"Python 3.8+ required, found {python_version.major}.{python_version.minor}", "error")
         return False
 
 
