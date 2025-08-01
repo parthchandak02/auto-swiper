@@ -106,7 +106,7 @@ jobs:
           fetch-depth: 0  # For proper version detection
           
       - name: Set up Python
-        uses: actions/setup-python@v4 # v4.8.0
+        uses: actions/setup-python@v5 # Updated to v5 for better cache handling
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
