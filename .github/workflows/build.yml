@@ -30,17 +30,17 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2 # v2.10.1
+        uses: step-security/harden-runner@v2 # v2.6.1
         with:
           egress-policy: audit
           
       - name: Checkout code
-        uses: actions/checkout@v5 # v5.0.0
+        uses: actions/checkout@v4 # v4.1.7
         with:
           persist-credentials: false
           
       - name: Set up Python
-        uses: actions/setup-python@v5 # v5.3.0
+        uses: actions/setup-python@v4 # v4.8.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -89,18 +89,18 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2 # v2.10.1
+        uses: step-security/harden-runner@v2 # v2.6.1
         with:
           egress-policy: audit
           
       - name: Checkout code
-        uses: actions/checkout@v5 # v5.0.0
+        uses: actions/checkout@v4 # v4.1.7
         with:
           persist-credentials: false
           fetch-depth: 0  # For proper version detection
           
       - name: Set up Python
-        uses: actions/setup-python@v5 # v5.3.0
+        uses: actions/setup-python@v4 # v4.8.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -205,7 +205,7 @@ jobs:
           ls -la AutoSwiper*
           
       - name: Create Release
-        uses: softprops/action-gh-release@v2 # v2.0.8
+        uses: softprops/action-gh-release@v1 # v1.0.0
         with:
           files: |
             AutoSwiper.exe
