@@ -45,10 +45,14 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           
-      - name: Install security tools
+      - name: Install uv for security scan
         run: |
-          python -m pip install --upgrade pip
-          pip install bandit safety pip-audit
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          
+      - name: Install security tools with uv
+        run: |
+          uv pip install --system bandit safety pip-audit
           
       - name: Run security scans
         run: |
@@ -112,16 +116,20 @@ jobs:
           python -c "import sys; print(f'Python executable: {sys.executable}')"
           echo "Platform: ${{ matrix.platform }}"
           
-      - name: Install dependencies with enhanced security
+      - name: Install uv
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
-          pip install pyinstaller
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          
+      - name: Install dependencies with uv (blazingly fast!)
+        run: |
+          uv pip install --system -r requirements.txt
+          uv pip install --system pyinstaller
           
       - name: Verify dependencies
         run: |
-          pip list
-          pip check
+          uv pip list --system
+          uv pip check --system
           
       - name: Set build environment variables
         run: |

@@ -359,7 +359,7 @@ python scripts/build_01_quick.py --use-uv           # Use uv for faster builds
         if not PYTHON_OPTIMIZED:
             print_styled("  • Upgrade to Python 3.11+ for 10-15% faster execution", "warning")
         if not use_uv:
-            print_styled("  • Install uv for faster dependency management: pip install uv", "info")
+            print_styled("  • Install uv for faster dependency management: curl -LsSf https://astral.sh/uv/install.sh | sh", "info")
         
         print_styled(f"\n⚠️ Platform-specific build:", "warning")
         print_styled(f"   This executable works on {sys.platform} only", "warning")
@@ -367,7 +367,7 @@ python scripts/build_01_quick.py --use-uv           # Use uv for faster builds
     else:
         print_styled("\n❌ Build failed!", "error")
         print_styled("\n🔧 Troubleshooting:", "info")
-        print_styled("  • Check all dependencies are installed: pip install -r requirements.txt", "info")
+        print_styled("  • Check all dependencies are installed: uv pip install -r requirements.txt", "info")
         print_styled("  • Try with --console flag to see runtime errors", "info")
         print_styled("  • Generate spec file: python scripts/build_01_quick.py --spec", "info")
         

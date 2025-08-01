@@ -100,7 +100,7 @@ def check_prerequisites() -> bool:
         subprocess.run(["pyinstaller", "--version"], capture_output=True, check=True)
         print_styled("✅ PyInstaller found", "success")
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print_styled("❌ PyInstaller not found. Install with: pip install pyinstaller", "error")
+        print_styled("❌ PyInstaller not found. Install with: uv pip install pyinstaller", "error")
         return False
     
     # Check for optional tools
@@ -115,7 +115,7 @@ def check_prerequisites() -> bool:
     if tools_status["uv"]:
         print_styled("✅ uv found (faster dependency management)", "success")
     else:
-        print_styled("💡 Consider installing uv for faster builds: pip install uv", "info")
+        print_styled("💡 Consider installing uv for faster builds: curl -LsSf https://astral.sh/uv/install.sh | sh", "info")
     
     return True
 

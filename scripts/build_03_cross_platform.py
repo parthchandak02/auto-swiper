@@ -186,9 +186,10 @@ jobs:
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
+                    curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.cargo/bin:$PATH"
+            uv pip install --system -r requirements.txt
+            uv pip install --system pyinstaller
     
     - name: Build executable
               run: python scripts/build_03_cross_platform.py

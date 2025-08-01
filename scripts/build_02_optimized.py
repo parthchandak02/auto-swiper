@@ -243,7 +243,7 @@ def create_minimal_requirements():
         f.write('\n'.join(minimal_deps) + '\n')
     
     print_styled("📝 Created minimal requirements: requirements_minimal.txt", "success")
-    print_styled("💡 Use this for smaller builds: pip install -r requirements_minimal.txt", "info")
+    print_styled("💡 Use this for smaller builds: uv pip install -r requirements_minimal.txt", "info")
 
 def main():
     show_banner()
