@@ -21,7 +21,11 @@ try:
     from rich.panel import Panel
     from rich.progress import Progress, SpinnerColumn, TextColumn
     from rich.prompt import Confirm
-    console = Console()
+    # Windows-compatible console setup
+    if platform.system() == "Windows":
+        console = Console(force_terminal=True, legacy_windows=False, width=120)
+    else:
+        console = Console()
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
@@ -65,13 +69,23 @@ def print_styled(message: str, style: str = "info") -> None:
         }
         console.print(f"[{styles.get(style, 'white')}]{message}[/]")
     else:
-        icons = {
-            "info": "ℹ️",
-            "success": "✅", 
-            "warning": "⚠️",
-            "error": "❌",
-            "highlight": "🎯"
-        }
+        # Fallback icons for non-Rich environments (Windows-safe)
+        if platform.system() == "Windows":
+            icons = {
+                "info": "[INFO]",
+                "success": "[OK]", 
+                "warning": "[WARN]",
+                "error": "[ERROR]",
+                "highlight": "[*]"
+            }
+        else:
+            icons = {
+                "info": "ℹ️",
+                "success": "✅", 
+                "warning": "⚠️",
+                "error": "❌",
+                "highlight": "🎯"
+            }
         print(f"{icons.get(style, '')} {message}")
 
 def check_prerequisites() -> bool:

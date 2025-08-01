@@ -19,7 +19,13 @@ try:
     from rich.text import Text
     from rich import box
     HAS_RICH = True
-    console = Console()
+    
+    # Windows-compatible console setup
+    if platform.system() == "Windows":
+        # Windows-safe console without legacy renderer
+        console = Console(force_terminal=True, legacy_windows=False, width=120)
+    else:
+        console = Console()
 except ImportError:
     HAS_RICH = False
     console = None
@@ -37,30 +43,49 @@ def print_styled(message: str, style: str = "info") -> None:
         }
         console.print(f"[{styles.get(style, 'white')}]{message}[/]")
     else:
-        # Fallback icons for non-Rich environments
-        icons = {
-            "info": "ℹ️",
-            "success": "✅", 
-            "warning": "⚠️",
-            "error": "❌",
-            "highlight": "🎯",
-            "progress": "📦"
-        }
+        # Fallback icons for non-Rich environments (Windows-safe)
+        if platform.system() == "Windows":
+            icons = {
+                "info": "[INFO]",
+                "success": "[OK]", 
+                "warning": "[WARN]",
+                "error": "[ERROR]",
+                "highlight": "[*]",
+                "progress": "[BUILD]"
+            }
+        else:
+            icons = {
+                "info": "ℹ️",
+                "success": "✅", 
+                "warning": "⚠️",
+                "error": "❌",
+                "highlight": "🎯",
+                "progress": "📦"
+            }
         print(f"{icons.get(style, '')} {message}")
 
 def show_banner():
     """Display a beautiful startup banner"""
     system = platform.system()
+    
+    # Windows-safe text without emojis
+    if system == "Windows":
+        title_text = "Auto-Swiper Cross-Platform Build Tool"
+        fallback_text = "Auto-Swiper Cross-Platform Build Tool"
+    else:
+        title_text = "🌍 Auto-Swiper Cross-Platform Build Tool"
+        fallback_text = "🌍 Auto-Swiper Cross-Platform Build Tool"
+    
     if HAS_RICH and console:
         banner = Panel(
-            Text(f"🌍 Auto-Swiper Cross-Platform Build Tool", style="bold cyan"),
+            Text(title_text, style="bold cyan"),
             subtitle=f"Building for {system} with universal compatibility",
             box=box.DOUBLE_EDGE,
             style="cyan"
         )
         console.print(banner)
     else:
-        print("🌍 Auto-Swiper Cross-Platform Build Tool")
+        print(fallback_text)
         print(f"Building for {system}")
         print("=" * 60)
 

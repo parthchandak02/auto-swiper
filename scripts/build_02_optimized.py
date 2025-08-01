@@ -19,7 +19,11 @@ try:
     from rich.text import Text
     from rich import box
     HAS_RICH = True
-    console = Console()
+    # Windows-compatible console setup
+    if platform.system() == "Windows":
+        console = Console(force_terminal=True, legacy_windows=False, width=120)
+    else:
+        console = Console()
 except ImportError:
     HAS_RICH = False
     console = None
@@ -37,15 +41,25 @@ def print_styled(message: str, style: str = "info") -> None:
         }
         console.print(f"[{styles.get(style, 'white')}]{message}[/]")
     else:
-        # Fallback icons for non-Rich environments
-        icons = {
-            "info": "ℹ️",
-            "success": "✅", 
-            "warning": "⚠️",
-            "error": "❌",
-            "highlight": "🎯",
-            "progress": "📦"
-        }
+        # Fallback icons for non-Rich environments (Windows-safe)
+        if platform.system() == "Windows":
+            icons = {
+                "info": "[INFO]",
+                "success": "[OK]", 
+                "warning": "[WARN]",
+                "error": "[ERROR]",
+                "highlight": "[*]",
+                "progress": "[BUILD]"
+            }
+        else:
+            icons = {
+                "info": "ℹ️",
+                "success": "✅", 
+                "warning": "⚠️",
+                "error": "❌",
+                "highlight": "🎯",
+                "progress": "📦"
+            }
         print(f"{icons.get(style, '')} {message}")
 
 def show_banner():
