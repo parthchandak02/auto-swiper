@@ -10,6 +10,60 @@ import platform
 import subprocess
 from pathlib import Path
 
+# Rich imports for beautiful terminal output
+try:
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+    from rich.table import Table
+    from rich.text import Text
+    from rich import box
+    HAS_RICH = True
+    console = Console()
+except ImportError:
+    HAS_RICH = False
+    console = None
+
+def print_styled(message: str, style: str = "info") -> None:
+    """Print with Rich styling if available, otherwise plain text"""
+    if HAS_RICH and console:
+        styles = {
+            "info": "blue",
+            "success": "green bold", 
+            "warning": "yellow",
+            "error": "red bold",
+            "highlight": "magenta bold",
+            "progress": "cyan"
+        }
+        console.print(f"[{styles.get(style, 'white')}]{message}[/]")
+    else:
+        # Fallback icons for non-Rich environments
+        icons = {
+            "info": "ℹ️",
+            "success": "✅", 
+            "warning": "⚠️",
+            "error": "❌",
+            "highlight": "🎯",
+            "progress": "📦"
+        }
+        print(f"{icons.get(style, '')} {message}")
+
+def show_banner():
+    """Display a beautiful startup banner"""
+    system = platform.system()
+    if HAS_RICH and console:
+        banner = Panel(
+            Text(f"🌍 Auto-Swiper Cross-Platform Build Tool", style="bold cyan"),
+            subtitle=f"Building for {system} with universal compatibility",
+            box=box.DOUBLE_EDGE,
+            style="cyan"
+        )
+        console.print(banner)
+    else:
+        print("🌍 Auto-Swiper Cross-Platform Build Tool")
+        print(f"Building for {system}")
+        print("=" * 60)
+
 def get_platform_config():
     """Get platform-specific build configuration"""
     system = platform.system().lower()
@@ -42,7 +96,7 @@ def create_platform_executable():
     config = get_platform_config()
     system = platform.system()
     
-    print(f"🚀 Building Auto-Swiper for {system}...")
+    print_styled(f"🚀 Building Auto-Swiper for {system}...", "highlight")
     
     # Base command
     cmd = [
@@ -69,17 +123,31 @@ def create_platform_executable():
     
     cmd.append('main.py')
     
-    print(f"📦 Command: {' '.join(cmd)}")
+    print_styled(f"📦 Command: {' '.join(cmd)}", "progress")
     
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        if HAS_RICH and console:
+            # Show progress with Rich
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TimeElapsedColumn(),
+                console=console,
+            ) as progress:
+                task = progress.add_task(f"Building for {system}...", total=None)
+                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        else:
+            # Fallback without Rich
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            
         executable_name = f"AutoSwiper{config['executable_extension']}"
-        print(f"✅ Build successful for {system}!")
-        print(f"📁 Executable: dist/{executable_name}")
+        print_styled(f"✅ Build successful for {system}!", "success")
+        print_styled(f"📁 Executable: dist/{executable_name}", "info")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Build failed for {system}!")
-        print(f"Error: {e.stderr}")
+        print_styled(f"❌ Build failed for {system}!", "error")
+        print_styled(f"Error: {e.stderr}", "error")
         return False
 
 def create_github_actions_workflow():
@@ -148,11 +216,10 @@ jobs:
     with open(workflow_file, 'w') as f:
         f.write(workflow_content)
     
-    print(f"📝 Created GitHub Actions workflow: {workflow_file}")
+    print_styled(f"📝 Created GitHub Actions workflow: {workflow_file}", "success")
 
 def main():
-    print("🌍 Auto-Swiper Cross-Platform Build Tool")
-    print("=" * 50)
+    show_banner()
     
     if len(sys.argv) > 1 and sys.argv[1] == '--github-actions':
         create_github_actions_workflow()
@@ -163,31 +230,45 @@ def main():
     missing_files = [f for f in required_files if not os.path.exists(f)]
     
     if missing_files:
-        print(f"❌ Missing required files: {missing_files}")
+        print_styled(f"❌ Missing required files: {missing_files}", "error")
         return
     
     success = create_platform_executable()
     
     if success:
         system = platform.system()
-        print(f"\n🎉 {system} build completed successfully!")
-        print("\n📋 Distribution Guide:")
-        print(f"• {system} users can run the executable directly")
-        print("• No Python installation required")
-        print("• All dependencies are bundled")
+        
+        if HAS_RICH and console:
+            success_panel = Panel(
+                f"[green]🎉 {system} build completed successfully![/green]\n\n"
+                "[bold]📋 Distribution Guide:[/bold]\n"
+                f"• {system} users can run the executable directly\n"
+                "• No Python installation required\n"
+                "• All dependencies are bundled",
+                title="Build Complete",
+                box=box.ROUNDED,
+                style="green"
+            )
+            console.print(success_panel)
+        else:
+            print_styled(f"\n🎉 {system} build completed successfully!", "success")
+            print_styled("\n📋 Distribution Guide:", "info")
+            print_styled(f"• {system} users can run the executable directly", "info")
+            print_styled("• No Python installation required", "info")
+            print_styled("• All dependencies are bundled", "info")
         
         if system == 'Darwin':  # macOS
-            print("\n🍎 macOS Notes:")
-            print("• Users may need to right-click → Open for first run")
-            print("• Or run: xattr -d com.apple.quarantine AutoSwiper")
+            print_styled("\n🍎 macOS Notes:", "warning")
+            print_styled("• Users may need to right-click → Open for first run", "info")
+            print_styled("• Or run: xattr -d com.apple.quarantine AutoSwiper", "info")
         elif system == 'Windows':
-            print("\n🪟 Windows Notes:")
-            print("• Antivirus may flag the executable (false positive)")
-            print("• Consider code signing for production distribution")
+            print_styled("\n🪟 Windows Notes:", "warning")
+            print_styled("• Antivirus may flag the executable (false positive)", "info")
+            print_styled("• Consider code signing for production distribution", "info")
         
-        print(f"\n💡 To build for other platforms:")
-        print("• Use GitHub Actions (run with --github-actions)")
-        print("• Or build on each target platform manually")
+        print_styled(f"\n💡 To build for other platforms:", "info")
+        print_styled("• Use GitHub Actions (run with --github-actions)", "info")
+        print_styled("• Or build on each target platform manually", "info")
 
 if __name__ == '__main__':
     main()

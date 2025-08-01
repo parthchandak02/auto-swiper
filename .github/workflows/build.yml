@@ -5,50 +5,233 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'main.py'
+      - 'requirements.txt'
+      - 'scripts/**'
+      - '.github/workflows/build.yml'
+
+# Security: Restrict permissions to minimum required
+permissions:
+  contents: write
+  packages: read
+  actions: read
+  security-events: write
+
+env:
+  PYTHON_VERSION: '3.11'
 
 jobs:
+  # Security validation job
+  security-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2 # v2.10.1
+        with:
+          egress-policy: audit
+          
+      - name: Checkout code
+        uses: actions/checkout@v5 # v5.0.0
+        with:
+          persist-credentials: false
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5 # v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety pip-audit
+          
+      - name: Run security scans
+        run: |
+          echo "🔍 Running security scans..."
+          bandit -r . -f json -o bandit-report.json || true
+          safety check --json --output safety-report.json || true
+          pip-audit --format=json --output=pip-audit-report.json || true
+          
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: '*-report.json'
+          retention-days: 30
+
   build:
     runs-on: ${{ matrix.os }}
+    needs: [security-scan]
+    if: always() && (needs.security-scan.result == 'success' || github.event_name != 'pull_request')
+    
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
             artifact_name: AutoSwiper.exe
             asset_name: AutoSwiper-Windows.exe
+            platform: windows
           - os: macos-latest
             artifact_name: AutoSwiper
             asset_name: AutoSwiper-macOS
+            platform: macos
           - os: ubuntu-latest
             artifact_name: AutoSwiper
             asset_name: AutoSwiper-Linux
+            platform: linux
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2 # v2.10.1
+        with:
+          egress-policy: audit
+          
+      - name: Checkout code
+        uses: actions/checkout@v5 # v5.0.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0  # For proper version detection
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5 # v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: 'requirements.txt'
+          
+      - name: Verify Python version and environment
+        run: |
+          python --version
+          python -c "import sys; print(f'Python executable: {sys.executable}')"
+          echo "Platform: ${{ matrix.platform }}"
+          
+      - name: Install dependencies with enhanced security
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install --no-deps -r requirements.txt
+          pip install pyinstaller
+          
+      - name: Verify dependencies
+        run: |
+          pip list
+          pip check
+          
+      - name: Set build environment variables
+        run: |
+          echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+          echo "BUILD_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "COMMIT_SHA=${GITHUB_SHA::8}" >> $GITHUB_ENV
+        shell: bash
+        
+      - name: Build executable
+        run: python scripts/build_03_cross_platform.py
+        env:
+          PYTHONHASHSEED: 1  # For reproducible builds
+          
+      - name: Verify build output
+        run: |
+          if [ -f "dist/${{ matrix.artifact_name }}" ]; then
+            echo "✅ Build successful: dist/${{ matrix.artifact_name }}"
+            ls -la dist/
+            file dist/${{ matrix.artifact_name }} || true
+          else
+            echo "❌ Build failed: dist/${{ matrix.artifact_name }} not found"
+            exit 1
+          fi
+        shell: bash
+        
+      - name: Generate build metadata
+        run: |
+          cat > dist/build-info.json << EOF
+          {
+            "version": "${{ env.BUILD_VERSION }}",
+            "commit": "${{ env.COMMIT_SHA }}",
+            "build_date": "${{ env.BUILD_DATE }}",
+            "platform": "${{ matrix.platform }}",
+            "python_version": "${{ env.PYTHON_VERSION }}",
+            "runner_os": "${{ runner.os }}"
+          }
+          EOF
+        shell: bash
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}-${{ env.COMMIT_SHA }}
+          path: |
+            dist/${{ matrix.artifact_name }}
+            dist/build-info.json
+          retention-days: 90
+          compression-level: 6
+          
+      - name: Upload artifacts for release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.asset_name }}
+          path: dist/${{ matrix.artifact_name }}
+          retention-days: 30
+
+  # Release job (only for tags)
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
-    
-    - name: Build executable
-              run: python scripts/build_03_cross_platform.py
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.asset_name }}
-        path: dist/${{ matrix.artifact_name }}
-    
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: dist/${{ matrix.artifact_name }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+          
+      - name: Download all release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-assets/
+          
+      - name: Prepare release assets
+        run: |
+          find release-assets/ -name "AutoSwiper*" -exec cp {} ./ \;
+          ls -la AutoSwiper*
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v2 # v2.0.8
+        with:
+          files: |
+            AutoSwiper.exe
+            AutoSwiper-macOS
+            AutoSwiper-Linux
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name }}
+          name: "Auto-Swiper ${{ github.ref_name }}"
+          body: |
+            ## 🚀 Auto-Swiper Release ${{ github.ref_name }}
+            
+            ### 📦 Downloads
+            - **Windows**: `AutoSwiper.exe`
+            - **macOS**: `AutoSwiper-macOS` 
+            - **Linux**: `AutoSwiper-Linux`
+            
+            ### 🔧 Installation
+            1. Download the executable for your platform
+            2. Make it executable (macOS/Linux): `chmod +x AutoSwiper-*`
+            3. Run the application
+            
+            ### ⚡ Built with
+            - Python ${{ env.PYTHON_VERSION }}
+            - Enhanced Rich UI
+            - Cross-platform compatibility
+            
+            Built at: ${{ github.event.head_commit.timestamp }}

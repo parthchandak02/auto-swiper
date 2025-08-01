@@ -265,8 +265,8 @@ exe = EXE(
     with open('AutoSwiper.spec', 'w') as f:
         f.write(spec_content)
     
-    print("📝 Created AutoSwiper.spec file")
-    print("💡 You can now run: pyinstaller AutoSwiper.spec")
+    print_styled("📝 Created AutoSwiper.spec file", "success")
+    print_styled("💡 You can now run: pyinstaller AutoSwiper.spec", "info")
 
 def main():
     """Main function with modern argument parsing"""
@@ -334,28 +334,42 @@ python scripts/build_01_quick.py --use-uv           # Use uv for faster builds
     success = create_build(console_mode=console_mode, use_uv=use_uv)
     
     if success:
-        print("\n🎉 Quick build completed successfully!")
-        print("\n📋 Next steps:")
-        print("  • Test the executable immediately")
-        print("  • For production, run: python scripts/build_manager.py optimized")
-        print("  • For multiple platforms: python scripts/build_manager.py cross")
+        if HAS_RICH and console:
+            # Create a beautiful success summary
+            success_panel = Panel(
+                "[green]🎉 Quick build completed successfully![/green]\n\n"
+                "[bold]📋 Next steps:[/bold]\n"
+                "  • Test the executable immediately\n"
+                "  • For production, run: [cyan]python scripts/build_manager.py optimized[/cyan]\n"
+                "  • For multiple platforms: [cyan]python scripts/build_manager.py cross[/cyan]",
+                title="Build Complete",
+                box=box.ROUNDED,
+                style="green"
+            )
+            console.print(success_panel)
+        else:
+            print_styled("\n🎉 Quick build completed successfully!", "success")
+            print_styled("\n📋 Next steps:", "info")
+            print_styled("  • Test the executable immediately", "info")
+            print_styled("  • For production, run: python scripts/build_manager.py optimized", "info")
+            print_styled("  • For multiple platforms: python scripts/build_manager.py cross", "info")
         
         # Show performance tips
-        print("\n💡 Performance tips:")
+        print_styled("\n💡 Performance tips:", "info")
         if not PYTHON_OPTIMIZED:
-            print("  • Upgrade to Python 3.11+ for 10-15% faster execution")
+            print_styled("  • Upgrade to Python 3.11+ for 10-15% faster execution", "warning")
         if not use_uv:
-            print("  • Install uv for faster dependency management: pip install uv")
+            print_styled("  • Install uv for faster dependency management: pip install uv", "info")
         
-        print(f"\n⚠️ Platform-specific build:")
-        print(f"   This executable works on {sys.platform} only")
+        print_styled(f"\n⚠️ Platform-specific build:", "warning")
+        print_styled(f"   This executable works on {sys.platform} only", "warning")
         
     else:
-        print("\n❌ Build failed!")
-        print("\n🔧 Troubleshooting:")
-        print("  • Check all dependencies are installed: pip install -r requirements.txt")
-        print("  • Try with --console flag to see runtime errors")
-        print("  • Generate spec file: python scripts/build_01_quick.py --spec")
+        print_styled("\n❌ Build failed!", "error")
+        print_styled("\n🔧 Troubleshooting:", "info")
+        print_styled("  • Check all dependencies are installed: pip install -r requirements.txt", "info")
+        print_styled("  • Try with --console flag to see runtime errors", "info")
+        print_styled("  • Generate spec file: python scripts/build_01_quick.py --spec", "info")
         
     return success
 
