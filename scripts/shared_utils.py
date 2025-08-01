@@ -34,8 +34,7 @@ try:
             force_terminal=True, 
             legacy_windows=False, 
             width=120,
-            file=sys.stdout,
-            force_encoding='utf-8'
+            file=sys.stdout
         )
     else:
         console = Console()
