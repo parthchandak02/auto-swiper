@@ -227,13 +227,33 @@ jobs:
 
   # Automatic release with auto-incremented version (only for main pushes)
   auto-release:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: [auto-version, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     
     steps:
+      - name: Check Prerequisites  
+        run: |
+          echo "🔍 Checking job dependencies..."
+          echo "Auto-version result: ${{ needs.auto-version.result }}"
+          echo "Build result: ${{ needs.build.result }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          
+          if [[ "${{ needs.auto-version.result }}" != "success" ]]; then
+            echo "❌ Auto-version job failed - cannot create release"
+            exit 1
+          fi
+          
+          if [[ "${{ needs.build.result }}" != "success" ]]; then
+            echo "❌ Build job failed - cannot create release"  
+            exit 1
+          fi
+          
+          echo "✅ All prerequisites met - proceeding with release"
+          
       - name: Harden Runner
         uses: step-security/harden-runner@v2 # v2.6.1
         with:
