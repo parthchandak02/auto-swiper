@@ -8,7 +8,7 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 
 | Platform | Download | Size |
 |----------|----------|------|
-| 🪟 **Windows** | [**AutoSwiper-Windows.exe**](../../releases/latest/download/AutoSwiper.exe) | ~143 KB |
+| 🪟 **Windows** | [**AutoSwiper.exe**](../../releases/latest/download/AutoSwiper.exe) | ~143 KB |
 | 🍎 **macOS** | [**AutoSwiper-macOS**](../../releases/latest/download/AutoSwiper-macOS) | ~56 MB |
 | 🐧 **Linux** | [**AutoSwiper-Linux**](../../releases/latest/download/AutoSwiper-Linux) | ~109 MB |
 
