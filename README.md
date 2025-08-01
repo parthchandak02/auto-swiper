@@ -4,8 +4,21 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 
 ![Auto-Swiper](logo.png)
 
+## 📥 **Download Now - No Python Required!**
+
+| Platform | Download | Size |
+|----------|----------|------|
+| 🪟 **Windows** | [**AutoSwiper-Windows.exe**](../../releases/latest/download/AutoSwiper.exe) | ~143 KB |
+| 🍎 **macOS** | [**AutoSwiper-macOS**](../../releases/latest/download/AutoSwiper-macOS) | ~56 MB |
+| 🐧 **Linux** | [**AutoSwiper-Linux**](../../releases/latest/download/AutoSwiper-Linux) | ~109 MB |
+
+> **✨ Latest release:** [**View all releases**](../../releases) • [**What's new?**](../../releases/latest)
+
+---
+
 ## Table of Contents
 
+- [📥 Download Now](#-download-now---no-python-required)
 - [🚀 Quick Start](#-quick-start)
 - [✨ Features](#-features)
 - [🛠️ Development Setup](#️-development-setup)
@@ -17,13 +30,12 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 ## 🚀 Quick Start
 
 ### Option 1: Download Standalone Executable (Recommended)
-**No Python installation required!**
+**Already downloaded from the table above? Perfect!**
 
-1. Download the executable for your operating system from [Releases](../../releases)
-2. Run the executable directly:
-   - **Windows**: Double-click `AutoSwiper-Windows.exe`
-   - **macOS**: Right-click `AutoSwiper-macOS` → "Open" 
-   - **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
+Run the executable directly:
+- **Windows**: Double-click `AutoSwiper-Windows.exe`
+- **macOS**: Right-click `AutoSwiper-macOS` → "Open" (bypass security warning)
+- **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
 
 ### Option 2: Run from Source
 

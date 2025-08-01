@@ -189,7 +189,7 @@ jobs:
 
   # Automatic releases for easy access to latest builds
   release-latest:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || startsWith(github.ref, 'refs/tags/')
     needs: [build]
     runs-on: ubuntu-latest
     permissions:
