@@ -124,7 +124,7 @@ jobs:
             asset_name: AutoSwiper-Windows.exe
             platform: windows
           - os: macos-latest
-            artifact_name: AutoSwiper
+            artifact_name: AutoSwiper.app
             asset_name: AutoSwiper-macOS
             platform: macos
           - os: ubuntu-latest
@@ -183,12 +183,31 @@ jobs:
           
       - name: Verify build output
         run: |
-          if [ -f "dist/${{ matrix.artifact_name }}" ]; then
+          echo "🔍 Checking dist/ directory contents:"
+          ls -la dist/ || echo "No dist/ directory found"
+          echo ""
+          
+          # Check for the expected artifact
+          if [ -f "dist/${{ matrix.artifact_name }}" ] || [ -d "dist/${{ matrix.artifact_name }}" ]; then
             echo "✅ Build successful: dist/${{ matrix.artifact_name }}"
             ls -la dist/
-            file dist/${{ matrix.artifact_name }} || true
+            
+            # Show file info if it's a file
+            if [ -f "dist/${{ matrix.artifact_name }}" ]; then
+              file dist/${{ matrix.artifact_name }} || true
+            fi
+            
+            # Show app bundle info if it's a directory (macOS .app)
+            if [ -d "dist/${{ matrix.artifact_name }}" ]; then
+              echo "📦 App bundle structure:"
+              ls -la dist/${{ matrix.artifact_name }}/ || true
+            fi
           else
             echo "❌ Build failed: dist/${{ matrix.artifact_name }} not found"
+            echo "🔍 Available files in dist/:"
+            find dist/ -type f -name "*" 2>/dev/null || echo "No files found"
+            echo "🔍 Available directories in dist/:"
+            find dist/ -type d -name "*" 2>/dev/null || echo "No directories found"
             exit 1
           fi
         shell: bash

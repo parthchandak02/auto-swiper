@@ -95,7 +95,22 @@ def create_platform_executable():
             
         executable_name = f"AutoSwiper{config['executable_extension']}"
         print_styled(f"✅ Build successful for {system}!", "success")
-        print_styled(f"📁 Executable: dist/{executable_name}", "info")
+        print_styled(f"📁 Expected executable: dist/{executable_name}", "info")
+        
+        # Debug: Show what was actually created
+        print_styled("🔍 Checking dist/ directory contents:", "info")
+        import os
+        if os.path.exists("dist"):
+            for item in os.listdir("dist"):
+                item_path = os.path.join("dist", item)
+                if os.path.isfile(item_path):
+                    size = os.path.getsize(item_path) / (1024 * 1024)
+                    print_styled(f"   📄 {item} ({size:.1f} MB)", "info")
+                elif os.path.isdir(item_path):
+                    print_styled(f"   📁 {item}/ (directory)", "info")
+        else:
+            print_styled("   ❌ No dist/ directory found", "warning")
+        
         return True
     except subprocess.CalledProcessError as e:
         print_styled(f"❌ Build failed for {system}!", "error")

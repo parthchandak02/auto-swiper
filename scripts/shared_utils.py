@@ -201,8 +201,8 @@ def get_platform_config() -> Dict[str, Any]:
             'icon_option': '--icon=logo.icns',
             'extra_options': [
                 '--osx-bundle-identifier=com.autoswiper.app',
-                '--windowed',  # Create .app bundle instead of bare executable
-                '--target-architecture=universal2'  # Support both Intel and Apple Silicon
+                '--windowed'  # Create .app bundle instead of bare executable
+                # Note: --target-architecture=universal2 removed temporarily for compatibility
             ]
         },
         'linux': {
