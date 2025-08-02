@@ -218,7 +218,6 @@ jobs:
           compression-level: 6
           
       - name: Upload artifacts for release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.asset_name }}
@@ -269,29 +268,28 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: "*Windows*"
           path: latest-release/
-          
-      - name: Download all build artifacts 
-        uses: actions/download-artifact@v4
-        with:
-          pattern: "*macOS*"
-          path: latest-release/
-          
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: "*Linux*" 
-          path: latest-release/
+          merge-multiple: true
           
       - name: Prepare latest release assets
         run: |
-          find latest-release/ -name "AutoSwiper*" -exec cp {} ./ \;
-          ls -la AutoSwiper*
+          # List downloaded artifacts for debugging
+          echo "Downloaded artifacts:"
+          find latest-release/ -type f -name "*" -ls
+          
+          # Copy and rename artifacts to expected names (looking for release- prefixed artifacts)
+          find latest-release/ -name "release-*Windows*" -type f -exec cp {} ./AutoSwiper.exe \; 2>/dev/null || echo "Windows artifact not found"
+          find latest-release/ -name "release-*macOS*" -type f -exec cp {} ./AutoSwiper-macOS \; 2>/dev/null || echo "macOS artifact not found"  
+          find latest-release/ -name "release-*Linux*" -type f -exec cp {} ./AutoSwiper-Linux \; 2>/dev/null || echo "Linux artifact not found"
+          
+          # List final files for debugging
+          echo "Release assets prepared:"
+          ls -la AutoSwiper* 2>/dev/null || echo "No AutoSwiper files found"
           
       - name: Create Git Tag
         run: |
