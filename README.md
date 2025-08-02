@@ -6,7 +6,12 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 
 ## 📥 **Download**
 
-> **✨ Ready-to-use executables available in [**Releases**](../../releases) - no Python installation required!**
+> **✨ [**Download Latest Release**](../../releases/latest) - ready-to-use executables, no Python installation required!**
+
+**Quick Links:**
+- **[Latest Release Downloads](../../releases/latest)** - Stable executables
+- **[All Releases](../../releases)** - Version history  
+- **[Latest Build Artifacts](../../actions/workflows/build.yml)** - Cutting-edge builds
 
 ---
 
@@ -26,7 +31,7 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 
 ### Option 1: Download Standalone Executable (Recommended)
 
-1. **Download** your platform's executable from [**Releases**](../../releases/latest)
+1. **Download** your platform's executable from [**Latest Release**](../../releases/latest)
 2. **Run** the executable directly:
    - **Windows**: Double-click `AutoSwiper.exe`
    - **macOS**: Right-click `AutoSwiper-macOS` → "Open" (bypass security warning)
