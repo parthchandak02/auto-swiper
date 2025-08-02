@@ -279,17 +279,71 @@ jobs:
       - name: Prepare latest release assets
         run: |
           # List downloaded artifacts for debugging
-          echo "Downloaded artifacts:"
+          echo "=== Downloaded artifacts structure ==="
           find latest-release/ -type f -name "*" -ls
+          echo ""
           
-          # Copy and rename artifacts to expected names (looking for release- prefixed artifacts)
-          find latest-release/ -name "release-*Windows*" -type f -exec cp {} ./AutoSwiper.exe \; 2>/dev/null || echo "Windows artifact not found"
-          find latest-release/ -name "release-*macOS*" -type f -exec cp {} ./AutoSwiper-macOS \; 2>/dev/null || echo "macOS artifact not found"  
-          find latest-release/ -name "release-*Linux*" -type f -exec cp {} ./AutoSwiper-Linux \; 2>/dev/null || echo "Linux artifact not found"
+          # Find and copy artifacts more robustly
+          echo "=== Searching for release artifacts ==="
+          
+          # Copy Windows executable
+          WINDOWS_FILE=$(find latest-release/ -name "*Windows*" -o -name "*windows*" -o -name "*.exe" | head -1)
+          if [ -n "$WINDOWS_FILE" ] && [ -f "$WINDOWS_FILE" ]; then
+            cp "$WINDOWS_FILE" ./AutoSwiper.exe
+            echo "✅ Windows: $WINDOWS_FILE → AutoSwiper.exe"
+          else
+            echo "❌ Windows artifact not found"
+          fi
+          
+          # Copy macOS executable  
+          MACOS_FILE=$(find latest-release/ -name "*macOS*" -o -name "*macos*" -o -name "*Darwin*" | grep -v ".exe" | head -1)
+          if [ -n "$MACOS_FILE" ] && [ -f "$MACOS_FILE" ]; then
+            cp "$MACOS_FILE" ./AutoSwiper-macOS
+            echo "✅ macOS: $MACOS_FILE → AutoSwiper-macOS"
+          else
+            echo "❌ macOS artifact not found"
+          fi
+          
+          # Copy Linux executable
+          LINUX_FILE=$(find latest-release/ -name "*Linux*" -o -name "*linux*" | grep -v ".exe" | head -1)
+          if [ -n "$LINUX_FILE" ] && [ -f "$LINUX_FILE" ]; then
+            cp "$LINUX_FILE" ./AutoSwiper-Linux  
+            echo "✅ Linux: $LINUX_FILE → AutoSwiper-Linux"
+          else
+            echo "❌ Linux artifact not found"
+          fi
           
           # List final files for debugging
-          echo "Release assets prepared:"
-          ls -la AutoSwiper* 2>/dev/null || echo "No AutoSwiper files found"
+          echo ""
+          echo "=== Final release assets ==="
+          ls -la AutoSwiper* 2>/dev/null || echo "❌ No AutoSwiper files found"
+          
+      - name: Verify Release Assets
+        run: |
+          echo "=== Verifying release assets before creating release ==="
+          ASSET_COUNT=0
+          
+          if [ -f "AutoSwiper.exe" ]; then
+            echo "✅ Windows executable ready ($(du -h AutoSwiper.exe | cut -f1))"
+            ASSET_COUNT=$((ASSET_COUNT + 1))
+          fi
+          
+          if [ -f "AutoSwiper-macOS" ]; then
+            echo "✅ macOS executable ready ($(du -h AutoSwiper-macOS | cut -f1))"
+            ASSET_COUNT=$((ASSET_COUNT + 1))
+          fi
+          
+          if [ -f "AutoSwiper-Linux" ]; then
+            echo "✅ Linux executable ready ($(du -h AutoSwiper-Linux | cut -f1))"
+            ASSET_COUNT=$((ASSET_COUNT + 1))
+          fi
+          
+          echo "📊 Total assets ready: $ASSET_COUNT/3"
+          
+          if [ $ASSET_COUNT -eq 0 ]; then
+            echo "❌ ERROR: No release assets found! Cannot create release."
+            exit 1
+          fi
           
       - name: Create Git Tag
         run: |
@@ -317,9 +371,7 @@ jobs:
             - **macOS**: Right-click `AutoSwiper-macOS` → "Open" (allow security override)
             - **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
           files: |
-            AutoSwiper.exe
-            AutoSwiper-macOS
-            AutoSwiper-Linux
+            AutoSwiper*
           draft: false
           prerelease: false
           make_latest: true
