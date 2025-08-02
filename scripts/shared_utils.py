@@ -197,9 +197,13 @@ def get_platform_config() -> Dict[str, Any]:
         },
         'darwin': {  # macOS
             'separator': ':',
-            'executable_extension': '',
+            'executable_extension': '.app',
             'icon_option': '--icon=logo.icns',
-            'extra_options': ['--osx-bundle-identifier=com.autoswiper.app']
+            'extra_options': [
+                '--osx-bundle-identifier=com.autoswiper.app',
+                '--windowed',  # Create .app bundle instead of bare executable
+                '--target-architecture=universal2'  # Support both Intel and Apple Silicon
+            ]
         },
         'linux': {
             'separator': ':',

@@ -32,9 +32,9 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 ### Option 1: Download Standalone Executable (Recommended)
 
 1. **Download** your platform's executable from [**Latest Release**](../../releases/latest)
-2. **Run** the executable directly:
+2. **Run** the executable:
    - **Windows**: Double-click `AutoSwiper.exe`
-   - **macOS**: Right-click `AutoSwiper-macOS` → "Open" (bypass security warning)
+   - **macOS**: Extract `AutoSwiper-macOS.zip`, then double-click `AutoSwiper.app` (bypass security warning if needed)
    - **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
 
 ### Option 2: Run from Source

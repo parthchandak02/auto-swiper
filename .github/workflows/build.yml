@@ -295,11 +295,20 @@ jobs:
             echo "❌ Windows artifact not found"
           fi
           
-          # Copy macOS executable  
-          MACOS_FILE=$(find latest-release/ -name "*macOS*" -o -name "*macos*" -o -name "*Darwin*" | grep -v ".exe" | head -1)
-          if [ -n "$MACOS_FILE" ] && [ -f "$MACOS_FILE" ]; then
-            cp "$MACOS_FILE" ./AutoSwiper-macOS
-            echo "✅ macOS: $MACOS_FILE → AutoSwiper-macOS"
+          # Copy macOS executable or .app bundle
+          MACOS_FILE=$(find latest-release/ -name "*macOS*" -o -name "*macos*" -o -name "*Darwin*" -o -name "*.app" | grep -v ".exe" | head -1)
+          if [ -n "$MACOS_FILE" ]; then
+            if [ -d "$MACOS_FILE" ] && [[ "$MACOS_FILE" == *.app ]]; then
+              # If it's an .app bundle (directory), zip it for distribution
+              zip -r ./AutoSwiper-macOS.zip "$MACOS_FILE"
+              echo "✅ macOS: $MACOS_FILE (app bundle) → AutoSwiper-macOS.zip"
+            elif [ -f "$MACOS_FILE" ]; then
+              # If it's a regular file, copy it directly
+              cp "$MACOS_FILE" ./AutoSwiper-macOS
+              echo "✅ macOS: $MACOS_FILE (executable) → AutoSwiper-macOS"
+            else
+              echo "❌ macOS artifact found but invalid: $MACOS_FILE"
+            fi
           else
             echo "❌ macOS artifact not found"
           fi
@@ -368,10 +377,11 @@ jobs:
             
             ## 🚀 **Quick Start:**
             - **Windows**: Double-click `AutoSwiper.exe`  
-            - **macOS**: Right-click `AutoSwiper-macOS` → "Open" (allow security override)
+            - **macOS**: Extract `AutoSwiper-macOS.zip`, then double-click `AutoSwiper.app` (or run executable directly)
             - **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
           files: |
             AutoSwiper*
+            *.zip
           draft: false
           prerelease: false
           make_latest: true

@@ -67,8 +67,11 @@ def create_platform_executable():
     # Add console option based on platform
     if system == 'Windows':
         cmd.append('--noconsole')  # Hide console on Windows
+    elif system == 'Darwin':
+        # macOS .app bundles are windowed by default (specified in extra_options)
+        pass  # --windowed already included in extra_options
     else:
-        cmd.append('--console')    # Keep console on Unix-like systems
+        cmd.append('--console')    # Keep console on Linux
     
     cmd.append('main.py')
     
