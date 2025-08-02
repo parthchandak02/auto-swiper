@@ -305,41 +305,17 @@ jobs:
           tag_name: ${{ needs.auto-version.outputs.version_tag }}
           name: "🚀 Auto-Swiper ${{ needs.auto-version.outputs.version_tag }} - Ready to Download!"
           body: |
-            # 🎉 Auto-Swiper ${{ needs.auto-version.outputs.version_tag }} is here!
-            
-            ## 📥 **Quick Download** (No Python needed!)
-            
-            | Platform | File | Size | Status |
-            |----------|------|------|--------|
-            | 🪟 **Windows** | `AutoSwiper.exe` | ~143 KB | ✅ Stable |
-            | 🍎 **macOS** | `AutoSwiper-macOS` | ~56 MB | ✅ Stable |
-            | 🐧 **Linux** | `AutoSwiper-Linux` | ~109 MB | ✅ Stable |
-            
-            ## 🚀 **Quick Start** (30 seconds!)
-            
-            ### Windows: `AutoSwiper.exe` → Double-click and go! 🎉
-            ### macOS: `AutoSwiper-macOS` → Right-click "Open" → Allow security override 💫  
-            ### Linux: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux` 🐧
+            **Ready-to-use executables for Windows, macOS, and Linux - no Python installation required!**
             
             ## ⚡ **What's New:**
             ```
             ${{ github.event.head_commit.message }}
             ```
             
-            ## 🔧 **Features:**
-            - ✅ No Python installation required
-            - ✅ Works with Bluestacks and Android emulators  
-            - ✅ Smart auto-swiping for Hinge
-            - ✅ Rich terminal interface
-            - ✅ Cross-platform compatibility
-            
-            ---
-            
-            **📊 Release Info:**
-            - **📅 Released:** ${{ github.event.head_commit.timestamp }}  
-            - **🔗 Commit:** [${{ github.sha }}](${{ github.event.head_commit.url }})  
-            - **👤 Author:** ${{ github.event.head_commit.author.name }}
-            - **🏷️ Version:** Auto-incremented stable release
+            ## 🚀 **Quick Start:**
+            - **Windows**: Double-click `AutoSwiper.exe`  
+            - **macOS**: Right-click `AutoSwiper-macOS` → "Open" (allow security override)
+            - **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
           files: |
             AutoSwiper.exe
             AutoSwiper-macOS
