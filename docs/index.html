@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auto-Swiper • Downloads & Docs</title>
+  <meta name="description" content="Auto-Swiper: cross-platform desktop app with PyAutoGUI and Rich UI" />
+  <link rel="icon" href="../logo.png" />
+  <link rel="stylesheet" href="./assets/style.css" />
+  <meta name="robots" content="index,follow" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <img src="../logo.png" alt="Auto-Swiper logo" class="logo" />
+        <div>
+          <h1>Auto-Swiper</h1>
+          <p class="tagline">Automate swiping with a beautiful terminal experience</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a id="repoLink" target="_blank" rel="noopener">GitHub</a>
+        <a id="releasesLink" target="_blank" rel="noopener">Releases</a>
+        <a id="actionsLink" target="_blank" rel="noopener">Builds</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h2>Download the latest release</h2>
+      <p>The site auto-detects this repository and links you to the newest builds.</p>
+      <div id="downloadGrid" class="download-grid">
+        <a id="btnWindows" class="btn disabled" aria-disabled="true">Windows</a>
+        <a id="btnMac" class="btn disabled" aria-disabled="true">macOS</a>
+        <a id="btnLinux" class="btn disabled" aria-disabled="true">Linux</a>
+      </div>
+      <p id="releaseInfo" class="release-info">Fetching latest release…</p>
+    </section>
+
+    <section class="content two-col">
+      <div>
+        <h3>Quick start</h3>
+        <ol>
+          <li>Download your platform build above.</li>
+          <li>On macOS, extract the .zip and open the app. On Linux, set executable: <code>chmod +x AutoSwiper-Linux</code>.</li>
+          <li>Open your Android emulator and launch Hinge before starting.</li>
+        </ol>
+        <p>
+          Prefer running from source? See the README on GitHub for setup, or run:
+        </p>
+        <pre class="code">python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python main.py</pre>
+      </div>
+      <div>
+        <h3>Customize messages</h3>
+        <p>
+          Auto-Swiper creates <code>~/Documents/AutoSwiper_CustomJokes.txt</code> on first run. Edit to personalize.
+        </p>
+        <ul>
+          <li>Open via <code>AutoSwiper --jokes</code></li>
+          <li>Lines starting with <code>#</code> are ignored</li>
+          <li>Defaults ship alongside your custom list</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="content">
+      <h3>About</h3>
+      <p>
+        This is a desktop automation tool powered by PyAutoGUI with a modern terminal UI built using Rich. GitHub Pages hosts these static docs and download links; the actual app runs on your machine.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="year"></span> Auto-Swiper</span>
+      <span>Licensed under MIT</span>
+    </div>
+  </footer>
+
+  <script src="./assets/app.js" defer></script>
+</body>
+</html>
+
