@@ -1,4 +1,18 @@
-Here's a joke...
-Here's a pun...
-Add more jokes here...
+# Default Auto-Swiper Messages
+# These are fallback messages used alongside your custom ones
+# Edit your personal messages at: ~/Documents/AutoSwiper_CustomJokes.txt
 
+Hey there! You seem awesome 😊
+Your smile is absolutely stunning!
+I'd love to get to know you better
+Coffee date? ☕
+You caught my eye immediately
+What's your favorite way to spend weekends?
+Your profile made me smile 😄
+Adventure buddy wanted! 🌟
+You seem like someone I'd love to talk to
+What's your go-to comfort food?
+I love your vibe!
+Weekend plans?
+You have great taste in photos!
+What's something you're passionate about?

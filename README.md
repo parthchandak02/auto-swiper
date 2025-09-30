@@ -6,12 +6,7 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 
 ## 📥 **Download**
 
-> **✨ [**Download Latest Release**](../../releases/latest) - ready-to-use executables, no Python installation required!**
-
-**Quick Links:**
-- **[Latest Release Downloads](../../releases/latest)** - Stable executables
-- **[All Releases](../../releases)** - Version history  
-- **[Latest Build Artifacts](../../actions/workflows/build.yml)** - Cutting-edge builds
+> **Note:** Pre-built executables are not currently available. Please build from source using the instructions below.
 
 ---
 
@@ -29,15 +24,7 @@ Automate swiping on Hinge using Bluestacks or any Android emulator.
 
 ## 🚀 Quick Start
 
-### Option 1: Download Standalone Executable (Recommended)
-
-1. **Download** your platform's executable from [**Latest Release**](../../releases/latest)
-2. **Run** the executable:
-   - **Windows**: Double-click `AutoSwiper.exe`
-   - **macOS**: Extract `AutoSwiper-macOS.zip`, then double-click `AutoSwiper.app` (bypass security warning if needed)
-   - **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
-
-### Option 2: Run from Source
+### Run from Source
 
 ```bash
 # Clone the repository
@@ -173,12 +160,14 @@ python scripts/build_02_optimized.py --build
 python scripts/maint_cleanup.py
 ```
 
-### Automated GitHub Releases
+### Manual Distribution
 ```bash
-# Create release with automated builds for all platforms
-git tag v1.0.0
-git push origin v1.0.0
-# GitHub Actions automatically builds Windows, macOS, and Linux executables
+# Build for your current platform
+python scripts/build_manager.py optimized
+
+# The executable will be created in the dist/ folder
+# Note: GitHub Actions workflow is not yet configured
+# Cross-platform builds currently require building on each platform separately
 ```
 
 ### Distribution Options
@@ -211,17 +200,20 @@ git push origin v1.0.0
 │   ├── 3_SEND_LIKE.png
 │   └── 4_RANDOM_X.png
 ├── 📁 scripts/                         # Build and automation tools
+│   ├── __init__.py
 │   ├── build_01_quick.py               # Fast development builds
 │   ├── build_02_optimized.py           # Production builds
 │   ├── build_03_cross_platform.py      # Multi-platform setup
 │   ├── build_manager.py                # Build orchestrator
-│   └── maint_cleanup.py                # Clean build artifacts
-├── 📁 .github/workflows/               # CI/CD automation
-│   └── build.yml                       # Cross-platform builds
+│   ├── maint_cleanup.py                # Clean build artifacts
+│   └── shared_utils.py                 # Shared build utilities
 ├── main.py                             # Core application with Rich UI
-├── jokes.txt                           # Random interaction messages
+├── jokes.txt                           # Default interaction messages
 ├── requirements.txt                    # Python dependencies
-├── LICENSE.md                          # Apache 2.0 license
+├── logo.png                            # Application logo
+├── logo.ico                            # Windows icon
+├── logo.icns                           # macOS icon
+├── LICENSE.md                          # MIT License
 └── README.md                           # This file
 ```
 
@@ -229,7 +221,7 @@ git push origin v1.0.0
 - **`main.py`**: Enhanced automation with Rich UI, image recognition, logging system
 - **`Images/`**: PyAutoGUI recognition patterns for UI elements  
 - **`scripts/`**: Modern build tools and automation utilities (2025 Edition)
-- **`.github/workflows/`**: Automated CI/CD for cross-platform releases
+- **`jokes.txt`**: Default messages (customize via `~/Documents/AutoSwiper_CustomJokes.txt`)
 
 ### 🚀 **Modern Build System (2025 Edition)**
 
@@ -255,6 +247,7 @@ python scripts/build_manager.py analysis
 - **🛡️ Smart Error Handling**: Comprehensive validation and helpful error messages
 - **📊 Build Analytics**: Size analysis, timing, and optimization recommendations
 - **🌍 Platform Detection**: Automatic platform-specific optimizations
+- **Note**: GitHub Actions CI/CD workflow not yet configured
 
 **Individual Scripts** (for specific needs):
 ```bash
@@ -304,6 +297,7 @@ We welcome contributions! Here's how to get started:
 - **🌍 Cross-Platform**: Improve compatibility
 - **🔒 Security**: Code signing, antivirus compatibility
 - **📖 Documentation**: Improve guides and examples
+- **🔧 CI/CD Setup**: Configure GitHub Actions for automated releases
 
 ### Code Standards
 - Follow PEP 8 for Python code style
@@ -342,9 +336,9 @@ Users are responsible for their own actions when using this software. The author
 
 Your Auto-Swiper is now a **professional, distributable application**! 
 
-- ✅ **Users**: Download and run executable - no technical setup needed
-- ✅ **Developers**: Full build system with automated releases
+- ✅ **Developers**: Full build system ready for use
 - ✅ **Maintainers**: Clean structure with comprehensive documentation
+- 🚧 **Coming Soon**: Automated releases via GitHub Actions
 
 **Questions?** Feel free to open an issue or contact: parth.chandak02@gmail.com
 
