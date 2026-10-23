@@ -1,345 +1,144 @@
-# Auto-Swiper
+<div align="center">
 
-Automate swiping on Hinge using Bluestacks or any Android emulator.
+<h1>Auto-Swiper</h1>
 
-![Auto-Swiper](logo.png)
+<p><b>Screen-matching auto-liker for Hinge in an emulator.</b></p>
 
-## 📥 **Download**
+<p><i>A PyAutoGUI script that finds buttons on screen by picture, clicks through a like, and types a short message from a text file.</i></p>
 
-> **Note:** Pre-built executables are not currently available. Please build from source using the instructions below.
+<h6>
 
----
+![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-111111?style=flat-square&logo=python&logoColor=white)
+![PyAutoGUI](https://img.shields.io/badge/PyAutoGUI-OpenCV%20matching-E8456B?style=flat-square)
+![Target](https://img.shields.io/badge/target-Android%20emulator-E8456B?style=flat-square&logo=android&logoColor=white)
+![Status](https://img.shields.io/badge/status-unmaintained%20experiment-555555?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-555555?style=flat-square)
 
-## Table of Contents
+</h6>
 
-- [📥 Download](#-download)
-- [🚀 Quick Start](#-quick-start)
-- [🎨 Personalizing Your Messages](#-personalizing-your-messages)
-- [✨ Features](#-features)
-- [🛠️ Development Setup](#️-development-setup)
-- [📦 Building & Distribution](#-building--distribution)
-- [📁 Project Structure](#-project-structure)
-- [🤝 Contributing](#-contributing)
-- [⚖️ License & Disclaimer](#️-license--disclaimer)
+<a href="#how-it-works"><b>How it works</b></a> ·
+<a href="#run-it"><b>Run it</b></a> ·
+<a href="#messages"><b>Messages</b></a> ·
+<a href="#limits"><b>Limits</b></a>
 
-## 🚀 Quick Start
+<br><br>
 
-### Run from Source
+<img src="docs/assets/readme/cli.png" width="680" alt="Terminal output of one loop: two buttons found and clicked, a message panel with the text to send, one button skipped as not found, and a session statistics table">
+
+<sub>Sample terminal output in the script's own format, made without running the automation. No app screen shown.</sub>
+
+</div>
+
+<br>
+
+## Why
+
+A side project from 2022, tidied up in 2025 with a Rich terminal UI and PyInstaller builds. It
+drives the Hinge Android app running in BlueStacks (or another emulator) on the desktop. It
+doesn't touch the app or its API: it only looks at the screen and moves the mouse, the way a
+person would. Automating a third-party app this way may break its terms of service; treat
+it as a desktop-automation exercise.
+
+## How it works
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+**1 · Find**
+
+`pyautogui.locateCenterOnScreen` looks for a template image (grayscale, OpenCV, confidence
+0.5) and returns the centre of the match.
+
+</td>
+<td width="33%" valign="top">
+
+**2 · Click and type**
+
+Heart, then "Add a comment", then a random line from the message files is typed, then
+"Send Like", with a 3-second wait between steps.
+
+</td>
+<td width="33%" valign="top">
+
+**3 · Count**
+
+Missing buttons are skipped, not fatal. Clicks and skips are tallied in a table and
+appended to `log.txt`. It stops after 200 likes or Ctrl+C.
+
+</td>
+</tr>
+</table>
+
+The templates it looks for live in `Images/`, cropped from the app's own buttons:
+
+<div align="center">
+<img src="Images/1_HEART.png" height="40" alt="Outline heart button template">&nbsp;&nbsp;&nbsp;<img src="Images/2_ADD_COMMENT.png" height="40" alt="Add a comment text field template">&nbsp;&nbsp;&nbsp;<img src="Images/3_SEND_LIKE.png" height="40" alt="Send Like button template">
+</div>
+
+## Run it
+
+Needs Python 3.8 or newer, a desktop session, and the emulator window open and visible.
+On macOS, give the terminal Accessibility and Screen Recording permission.
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/auto-swiper.git
+git clone https://github.com/parthchandak02/auto-swiper.git
 cd auto-swiper
-
-# Install uv (blazingly fast package manager)
-curl -LsSf https://astral.sh/uv/install.sh | sh  # Unix/macOS
-# Or on Windows: powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies with uv (much faster than pip!)
-uv pip install -r requirements.txt
-
-# Run the application
-python main.py
+pip install -r requirements.txt   # pillow, opencv-python, pyautogui, rich
+python main.py --help             # usage panel
+python main.py --demo             # preview the terminal UI, no clicking
+python main.py                    # start; move the mouse to a screen corner to abort
 ```
 
-## 🎨 Personalizing Your Messages
+PyAutoGUI's fail-safe is on: slamming the pointer into a corner stops the script.
 
-**Auto-Swiper lets you completely customize the pickup lines and messages it sends!**
+## Messages
 
-### 📝 How to Add Your Own Messages
+Each like carries one line picked at random from two sources:
 
-1. **Automatic Setup**: The first time you run Auto-Swiper, it creates a custom jokes file
-2. **Easy Editing**: Find the file at `~/Documents/AutoSwiper_CustomJokes.txt`
-3. **Quick Access**: Run `AutoSwiper --jokes` to open the folder instantly
+- **`jokes.txt`** in the repo: 14 bundled defaults.
+- **`~/Documents/AutoSwiper_CustomJokes.txt`**: your own lines, one per line, `#` for comments.
+  Created on first run; `python main.py --jokes` opens its folder.
 
-### 📂 Opening Your Custom File
+## Limits
+
+- **Resolution-bound.** Template matching only works when the emulator renders the buttons at
+  the same size and look as the crops in `Images/`. A redesign of the app breaks it.
+- **No prompt awareness.** It doesn't read the profile; the message is random.
+- **Unmaintained.** Last changed in September 2025. `Images/0_CHECK_FOR_ROSE.png`,
+  `0_CHECK_FOR_LOADING.png` and `4_RANDOM_X.png` are not used by the current loop.
+- **No releases.** The GitHub Actions build workflow last failed; build locally.
+
+<details>
+<summary><b>Building a standalone executable</b></summary>
 
 ```bash
-# Open the jokes folder directly
-AutoSwiper --jokes
-
-# Or navigate manually to:
-# Windows: C:\Users\YourName\Documents\AutoSwiper_CustomJokes.txt
-# macOS: ~/Documents/AutoSwiper_CustomJokes.txt  
-# Linux: ~/Documents/AutoSwiper_CustomJokes.txt
+pip install pyinstaller
+python scripts/build_manager.py quick       # fast build with console
+python scripts/build_manager.py optimized   # smaller single file
+python scripts/maint_cleanup.py             # remove build artifacts
 ```
 
-### ✏️ Editing Your Messages
+The executable lands in `dist/` (`AutoSwiper-macOS`, `AutoSwiper-Windows.exe` or
+`AutoSwiper-Linux`). Build on each platform separately.
 
-The custom file includes helpful examples and instructions:
+</details>
 
-```
-# AutoSwiper Custom Jokes
-# Edit this file to add your own pickup lines and messages!
-# Each line is a separate message (lines starting with # are ignored)
-
-Hey there! You seem awesome 😊
-Your smile is absolutely stunning!
-Coffee date? ☕
-What's your favorite way to spend weekends?
-
-# Add your own lines below:
-# (Remove the # to activate them)
-# Your custom message here
-```
-
-### 💡 Tips for Great Messages
-
-- **Be authentic** - write in your own voice
-- **Ask questions** - show genuine interest  
-- **Keep it light** - humor works well
-- **Be respectful** - always be kind and considerate
-- **Use emojis** - they add personality (but don't overdo it)
-
----
-
-## ✨ Features
-
-- **🎯 Automated Swiping**: Automatically like profiles on Hinge
-- **💬 Custom Messages**: Fully customizable pickup lines and messages 
-- **🎨 Easy Personalization**: Edit your own jokes in a simple text file
-- **📊 Beautiful Terminal UI**: Enhanced with Rich library for gorgeous output
-- **📈 Real-time Progress**: Live progress bars and statistics tables
-- **🌈 Colorful Status**: Rich colors and emojis for better visual feedback
-- **📋 Smart Logging**: Beautiful terminal tables plus traditional log files
-- **🔄 Error Resilience**: Continues operation even if UI elements aren't found
-- **⚡ Loading Screen**: Beautiful startup animation while app initializes
-- **⚡ Standalone Distribution**: No Python installation required for end users
-- **🌍 Cross-Platform**: Works on Windows, macOS, and Linux
-
-## 🛠️ Development Setup
-
-### Prerequisites
-- Python 3.8 or higher
-- Bluestacks or any Android emulator with Hinge installed
-- Virtual environment (recommended)
-
-### Installation
-```bash
-# Clone and setup
-git clone https://github.com/yourusername/auto-swiper.git
-cd auto-swiper
-
-# Virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Dependencies (with blazingly fast uv!)
-uv pip install -r requirements.txt
-uv pip install pyinstaller  # For building executables
-
-# Test the enhanced application
-python main.py
-
-# You'll see beautiful Rich terminal output with:
-# - Startup banner with colors and borders
-# - Progress bars for waiting periods  
-# - Colorful status messages for clicks
-# - Beautiful panels for joke display
-# - Statistics tables for session summary
-```
-
-## 📦 Building & Distribution
-
-### Quick Build
-```bash
-# Build for current platform
-python scripts/build_01_quick.py
-
-# Cross-platform build
-python scripts/build_03_cross_platform.py
-
-# Optimized build (smaller size)
-python scripts/build_02_optimized.py --build
-
-# Clean build artifacts
-python scripts/maint_cleanup.py
-```
-
-### Manual Distribution
-```bash
-# Build for your current platform
-python scripts/build_manager.py optimized
-
-# The executable will be created in the dist/ folder
-# Note: GitHub Actions workflow is not yet configured
-# Cross-platform builds currently require building on each platform separately
-```
-
-### Distribution Options
-
-**PyInstaller (Current)**
-- ✅ Single executable file (~54MB)
-- ✅ All dependencies bundled
-- ✅ No Python required for users
-- ✅ Cross-platform support
-
-**Alternative Options**
-- **Briefcase**: Modern BeeWare tool for native installers
-- **Nuitka**: Compiles to C++ for faster execution
-- **cx_Freeze**: Alternative packaging solution
-
-### Build Results
-- **Windows**: `AutoSwiper-Windows.exe`
-- **macOS**: `AutoSwiper-macOS` 
-- **Linux**: `AutoSwiper-Linux`
-
-## 📁 Project Structure
+<details>
+<summary><b>Project layout</b></summary>
 
 ```
-📁 auto-swiper/
-├── 📁 Images/                          # PyAutoGUI recognition patterns
-│   ├── 0_CHECK_FOR_LOADING.png
-│   ├── 0_CHECK_FOR_ROSE.png
-│   ├── 1_HEART.png
-│   ├── 2_ADD_COMMENT.png
-│   ├── 3_SEND_LIKE.png
-│   └── 4_RANDOM_X.png
-├── 📁 scripts/                         # Build and automation tools
-│   ├── __init__.py
-│   ├── build_01_quick.py               # Fast development builds
-│   ├── build_02_optimized.py           # Production builds
-│   ├── build_03_cross_platform.py      # Multi-platform setup
-│   ├── build_manager.py                # Build orchestrator
-│   ├── maint_cleanup.py                # Clean build artifacts
-│   └── shared_utils.py                 # Shared build utilities
-├── main.py                             # Core application with Rich UI
-├── jokes.txt                           # Default interaction messages
-├── requirements.txt                    # Python dependencies
-├── logo.png                            # Application logo
-├── logo.ico                            # Windows icon
-├── logo.icns                           # macOS icon
-├── LICENSE.md                          # MIT License
-└── README.md                           # This file
+main.py        The loop, image matching, message loading, Rich output
+jokes.txt      Bundled default messages
+Images/        Button templates matched on screen
+scripts/       PyInstaller build helpers
+.github/       Cross-platform build workflow
 ```
 
-### Core Components
-- **`main.py`**: Enhanced automation with Rich UI, image recognition, logging system
-- **`Images/`**: PyAutoGUI recognition patterns for UI elements  
-- **`scripts/`**: Modern build tools and automation utilities (2025 Edition)
-- **`jokes.txt`**: Default messages (customize via `~/Documents/AutoSwiper_CustomJokes.txt`)
+</details>
 
-### 🚀 **Modern Build System (2025 Edition)**
+<br>
 
-**Single Command Interface:**
-```bash
-# Quick development build
-python scripts/build_manager.py quick
-
-# Production-optimized build  
-python scripts/build_manager.py optimized
-
-# Cross-platform CI/CD setup
-python scripts/build_manager.py cross
-
-# Analyze dependencies and size
-python scripts/build_manager.py analysis
-```
-
-**Advanced Features:**
-- **🔥 Python 3.11+ Optimizations**: 10-15% faster execution + advanced features
-- **⚡ uv Integration**: Lightning-fast dependency management  
-- **🎨 Rich UI**: Beautiful terminal output with progress bars and status tables
-- **🛡️ Smart Error Handling**: Comprehensive validation and helpful error messages
-- **📊 Build Analytics**: Size analysis, timing, and optimization recommendations
-- **🌍 Platform Detection**: Automatic platform-specific optimizations
-- **Note**: GitHub Actions CI/CD workflow not yet configured
-
-**Individual Scripts** (for specific needs):
-```bash
-python scripts/build_01_quick.py --console      # Quick build with console
-python scripts/build_02_optimized.py --build # Size-optimized build
-python scripts/build_03_cross_platform.py    # GitHub Actions setup
-python scripts/maint_cleanup.py              # Clean build artifacts
-```
-
-### ✨ Enhanced Terminal Experience
-The script now features:
-- **🎨 Beautiful Startup Banner**: Colorful welcome message with project info
-- **📊 Live Progress Bars**: Real-time progress during waiting periods
-- **🎯 Status Messages**: Color-coded success/error messages with emojis
-- **💬 Message Panels**: Elegant display of random jokes/messages
-- **📈 Statistics Tables**: Beautiful tables showing session statistics
-- **🎉 Final Summary**: Comprehensive end-of-session report
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how to get started:
-
-### Development Process
-1. **Fork and Clone**:
-   ```bash
-   git clone https://github.com/your-username/auto-swiper.git
-   cd auto-swiper
-   ```
-
-2. **Set up Environment**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   uv pip install -r requirements.txt
-   uv pip install pyinstaller
-   ```
-
-3. **Test Your Changes**:
-   ```bash
-   python main.py              # Test the application
-   python scripts/build_01_quick.py     # Test building executable
-   ```
-
-### Contribution Areas
-- **🎨 UI Improvements**: Better console output or interface
-- **⚡ Build Optimization**: Reduce executable size
-- **🌍 Cross-Platform**: Improve compatibility
-- **🔒 Security**: Code signing, antivirus compatibility
-- **📖 Documentation**: Improve guides and examples
-- **🔧 CI/CD Setup**: Configure GitHub Actions for automated releases
-
-### Code Standards
-- Follow PEP 8 for Python code style
-- Add comments for complex automation logic
-- Test on multiple platforms when possible
-- Update documentation for new features
-
-### Bug Reports
-Include:
-- Operating system and version
-- Python version (if running from source)
-- Steps to reproduce
-- Error messages or logs
-- Screenshots if applicable
-
-## ⚖️ License & Disclaimer
-
-### License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
-### Disclaimer
-**⚠️ Educational Use Only**
-
-This software is intended for educational and personal use only. Use of this software to automate interactions on third-party platforms, such as Hinge and Bluestacks, may violate their terms of service. The author does not condone or encourage any activities that violate the terms of service of any platform.
-
-Users are responsible for their own actions when using this software. The author assumes no liability for any misuse of this software or any consequences resulting from its use.
-
-### Security Notes
-- Antivirus software may flag executables as false positives
-- Consider code signing for production releases
-- Grant accessibility permissions when prompted (macOS/Linux)
-
----
-
-## 🎊 Success!
-
-Your Auto-Swiper is now a **professional, distributable application**! 
-
-- ✅ **Developers**: Full build system ready for use
-- ✅ **Maintainers**: Clean structure with comprehensive documentation
-- 🚧 **Coming Soon**: Automated releases via GitHub Actions
-
-**Questions?** Feel free to open an issue or contact: parth.chandak02@gmail.com
-
-**Happy Swiping!** 🚀
+<div align="center">
+<sub>Built with PyAutoGUI, OpenCV and Rich. MIT licensed.</sub>
+</div>
