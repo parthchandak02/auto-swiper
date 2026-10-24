@@ -105,8 +105,7 @@ Each like carries one line picked at random from two sources:
 - **Resolution-bound.** Template matching only works when the emulator renders the buttons at
   the same size and look as the crops in `Images/`. A redesign of the app breaks it.
 - **No prompt awareness.** It doesn't read the profile; the message is random.
-- **Unmaintained.** Last changed in September 2025. `Images/0_CHECK_FOR_ROSE.png`,
-  `0_CHECK_FOR_LOADING.png` and `4_RANDOM_X.png` are not used by the current loop.
+- **Unmaintained.** Last changed in September 2025.
 - **No releases.** The GitHub Actions build workflow last failed; build locally.
 
 <details>

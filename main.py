@@ -26,7 +26,6 @@ def get_resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 # Image paths - properly handled for PyInstaller
-roseCheckImg = get_resource_path('Images/0_CHECK_FOR_ROSE.png')
 heartImg = get_resource_path('Images/1_HEART.png')
 commentImg = get_resource_path('Images/2_ADD_COMMENT.png')
 likeImg = get_resource_path('Images/3_SEND_LIKE.png')
@@ -215,7 +214,9 @@ def loadJokes(filename):
     try:
         with open(bundled_jokes_path, 'r', encoding='utf-8') as file:
             default_jokes = file.read().splitlines()
-            default_jokes = [joke.strip() for joke in default_jokes if joke.strip()]
+            # Filter out comments and empty lines, same as the custom file
+            default_jokes = [joke.strip() for joke in default_jokes
+                             if joke.strip() and not joke.strip().startswith('#')]
             for joke in default_jokes:
                 jokes_with_source.append((joke, "default"))
             default_count = len(default_jokes)
