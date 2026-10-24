@@ -293,7 +293,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: latest-release/
-          merge-multiple: true
+          # One folder per platform (AutoSwiper-<platform>-<sha>/); merging would drop the platform name
+          pattern: AutoSwiper-*
           
       - name: Prepare latest release assets
         run: |
@@ -306,7 +307,7 @@ jobs:
           echo "=== Searching for release artifacts ==="
           
           # Copy Windows executable
-          WINDOWS_FILE=$(find latest-release/ -name "*Windows*" -o -name "*windows*" -o -name "*.exe" | head -1)
+          WINDOWS_FILE=$(find latest-release/AutoSwiper-Windows* -name "*.exe" -type f | head -1)
           if [ -n "$WINDOWS_FILE" ] && [ -f "$WINDOWS_FILE" ]; then
             cp "$WINDOWS_FILE" ./AutoSwiper.exe
             echo "✅ Windows: $WINDOWS_FILE → AutoSwiper.exe"
@@ -315,11 +316,13 @@ jobs:
           fi
           
           # Copy macOS executable or .app bundle
-          MACOS_FILE=$(find latest-release/ -name "*macOS*" -o -name "*macos*" -o -name "*Darwin*" -o -name "*.app" | grep -v ".exe" | head -1)
+          MACOS_FILE=$(find latest-release/AutoSwiper-macOS* -maxdepth 1 -name "*.app" | head -1)
           if [ -n "$MACOS_FILE" ]; then
             if [ -d "$MACOS_FILE" ] && [[ "$MACOS_FILE" == *.app ]]; then
               # If it's an .app bundle (directory), zip it for distribution
-              zip -r ./AutoSwiper-macOS.zip "$MACOS_FILE"
+              # Artifacts lose the executable bit; restore it and zip from the bundle's folder
+              chmod +x "$MACOS_FILE"/Contents/MacOS/*
+              (cd "$(dirname "$MACOS_FILE")" && zip -r -y "$GITHUB_WORKSPACE/AutoSwiper-macOS.zip" "$(basename "$MACOS_FILE")")
               echo "✅ macOS: $MACOS_FILE (app bundle) → AutoSwiper-macOS.zip"
             elif [ -f "$MACOS_FILE" ]; then
               # If it's a regular file, copy it directly
@@ -333,9 +336,10 @@ jobs:
           fi
           
           # Copy Linux executable
-          LINUX_FILE=$(find latest-release/ -name "*Linux*" -o -name "*linux*" | grep -v ".exe" | head -1)
+          LINUX_FILE=$(find latest-release/AutoSwiper-Linux* -maxdepth 1 -name "AutoSwiper" -type f | head -1)
           if [ -n "$LINUX_FILE" ] && [ -f "$LINUX_FILE" ]; then
-            cp "$LINUX_FILE" ./AutoSwiper-Linux  
+            cp "$LINUX_FILE" ./AutoSwiper-Linux
+            chmod +x ./AutoSwiper-Linux
             echo "✅ Linux: $LINUX_FILE → AutoSwiper-Linux"
           else
             echo "❌ Linux artifact not found"
@@ -356,8 +360,8 @@ jobs:
             ASSET_COUNT=$((ASSET_COUNT + 1))
           fi
           
-          if [ -f "AutoSwiper-macOS" ]; then
-            echo "✅ macOS executable ready ($(du -h AutoSwiper-macOS | cut -f1))"
+          if [ -f "AutoSwiper-macOS.zip" ]; then
+            echo "✅ macOS app ready ($(du -h AutoSwiper-macOS.zip | cut -f1))"
             ASSET_COUNT=$((ASSET_COUNT + 1))
           fi
           
@@ -368,8 +372,8 @@ jobs:
           
           echo "📊 Total assets ready: $ASSET_COUNT/3"
           
-          if [ $ASSET_COUNT -eq 0 ]; then
-            echo "❌ ERROR: No release assets found! Cannot create release."
+          if [ $ASSET_COUNT -lt 3 ]; then
+            echo "❌ ERROR: Expected Windows, macOS and Linux assets. Cannot create release."
             exit 1
           fi
           
