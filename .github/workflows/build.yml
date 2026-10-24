@@ -400,7 +400,6 @@ jobs:
             - **Linux**: `chmod +x AutoSwiper-Linux && ./AutoSwiper-Linux`
           files: |
             AutoSwiper*
-            *.zip
           draft: false
           prerelease: false
           make_latest: true
